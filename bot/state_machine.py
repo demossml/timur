@@ -416,7 +416,7 @@ async def handle_ready_state(bot, message, session, next):
             print(f"Error sending messages: {e}")
         try:
             doc_bytes = result[1]
-            doc_bytes.name = "book.xls"  # Устанавливаем имя файла в объекте BytesIO
+            doc_bytes.name = "book.xlsx"  # Устанавливаем имя файла в объекте BytesIO
             await bot.send_document(message.chat_id, document=doc_bytes)
         except Exception as e:
             print(f"Error sending document: {e}")

@@ -23,6 +23,7 @@ import traceback
 import json
 import re
 import time
+import rarfile
 
 
 def find_INN(resource, query, API_KEY):
@@ -142,9 +143,105 @@ def process_PDF_files(downloaded_zip_file):
         traceback.print_exc()
 
 
-# import PyPDF2
-# import io
-# import zipfile
+def process_PDF_files_rar(downloaded_rar_file):
+    API_KEY = "e847ba51dfe5006957aca33cbd3e158f234b2bfe"
+    try:
+        with rarfile.RarFile(io.BytesIO(downloaded_rar_file), "r") as rar_ref:
+            results = []  # Здесь будем хранить результаты обработки
+            dict_ = {}
+            for file_name in rar_ref.namelist():
+                if file_name.lower().endswith(".pdf"):
+                    pdf_content = rar_ref.read(file_name)
+                    pdf_file = io.BytesIO(pdf_content)
+                    try:
+                        pdf_reader = PyPDF2.PdfReader(pdf_file)
+                        for page_num in range(len(pdf_reader.pages)):
+                            page = pdf_reader.pages[page_num]
+                            page_content = page.extract_text()
+                            page_content = page_content.split("\n")
+                            name_ = ""
+                            phone_ = ""
+                            address_ = ""
+                            inn_ = ""
+                            сompany_ = ""
+                            product_ = ""
+                            address__ = (
+                                False  # Флаг для обозначения начала сбора адреса
+                            )
+
+                            for line in page_content:
+                                if re.search(r"^ИНН:", line):
+                                    inn_ = line.replace("ИНН: ", "").replace(".", "")
+                                    if inn_[:-1] in dict_.keys():
+                                        сompany_ = dict_[inn_[:-1]]
+                                    else:
+                                        name_company = find_INN(
+                                            "party", inn_[:-1], API_KEY
+                                        )["suggestions"][0]["value"]
+                                        dict_[inn_[:-1]] = name_company
+                                        сompany_ = dict_[inn_[:-1]]
+                                if re.search(r"^ФИО:", line):
+                                    name_ = line.replace("ФИО: ", "").replace(".", "")
+                                if re.search(r"^Телефон:", line):
+                                    if phone_ == "":
+                                        phone_ = line.replace("Телефон: ", "")
+                                if address__:
+                                    address_ = (
+                                        address_
+                                        + " "
+                                        + line.replace("Адрес: ", "").replace(
+                                            " ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", ""
+                                        )
+                                    )
+                                    if "ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ" in line:
+                                        address__ = False
+                                if re.search(r"^Адрес:", line) or re.search(
+                                    r"^ПВЗ:", line
+                                ):
+                                    if not "ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ" in line:
+                                        address__ = True
+                                    address_ = (
+                                        line.replace("Адрес: ", "")
+                                        .replace(" ПВЗ: ", "")
+                                        .replace(" ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
+                                    )
+                                if "Арт." in line:
+                                    info_ = line.split(" ")
+                                    if len(info_) > 2:
+                                        if len(info_[2]) > 1:
+                                            product_ = info_[2]
+                                        else:
+                                            info_2 = (
+                                                line.replace(")", "__")
+                                                .replace("(", "__")
+                                                .split("__")
+                                            )
+                                            product_ = info_2[2]
+
+                            result_entry = {
+                                "ФИО": name_.strip(),
+                                "Телефон": phone_.strip(),
+                                "Адрес": address_.strip(),
+                                "Продукт": product_.strip(),
+                                "ИНН": inn_.strip(),
+                                "Компания": сompany_.strip(),
+                            }
+
+                            results.append(result_entry)
+                    except Exception as e:
+                        print(f"Ошибка при чтении PDF-файла: {file_name}")
+                        traceback.print_exc()
+
+        # Преобразование результатов в формат JSON
+        # json_results = json.dumps(results, ensure_ascii=False, indent=4)
+        return results
+
+    except rarfile.BadRarFile:
+        print("Ошибка: Неверный rar-файл.")
+        traceback.print_exc()
+    except Exception as e:
+        print(f"Ошибка: {str(e)}")
+        traceback.print_exc()
 
 
 def process_PDF_files_(downloaded_zip_file):
@@ -359,6 +456,19 @@ async def handle_reply_state(bot, message, session, next):
 
             # Сохранение информации о файле в сессию
             session.params["inputs"][str(room)][input_name] = src_list
+        if (
+            message.document.mime_type == "application/x-rar-compressed"
+        ):  # Проверка на тип файла RAR
+            pprint("rar")
+
+            # Получение информации о файле из сообщения
+            file_info = await bot.get_file(message.document.file_id)
+            downloaded_rar_file = await bot.download_file(file_info.file_path)
+            src_list = process_PDF_files_rar(downloaded_rar_file)
+
+            # Сохранение информации о файле в сессию
+            session.params["inputs"][str(room)][input_name] = src_list
+
         else:  # Если файл не является zip, обрабатываем его как обычный документ
             # Получение информации о файле из сообщения
             file_info = await bot.get_file(message.document.file_id)

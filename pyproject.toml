@@ -30,6 +30,8 @@ pytelegrambotapi = "^4.16.1"
 chardet = "^5.2.0"
 psutil = "^5.9.8"
 rarfile = "^4.1"
+watchdog = "^4.0.0"
+unrar = "^0.4"
 
 
 

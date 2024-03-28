@@ -2,23 +2,23 @@ version: "3.7"
 services:
   mongodb:
     # Сервис MongoDB
-    image: mongo:latest # Используем образ MongoDB
-    restart: always # Всегда перезапускать контейнер в случае ошибки
+    image: mongo:latest
+    restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root # Имя пользователя по умолчанию
-      MONGO_INITDB_ROOT_PASSWORD: rootpassword # Пароль пользователя по умолчанию
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
       MONGODB_DATABASE: tc
       MONGODB_HOSTNAME: mongodb
       TELEGRAM_TOKEN: "6908041033:AAH3bZffu70Bf5fFy00DeGy-KI0hXLMzs_w"
-
     ports:
-      - 127.0.0.1:24000:27020 # Проброс порта: локальный порт:27020 -> порт в контейнере:27020
+      - 127.0.0.1:24000:27020
     volumes:
-      - mongodb_data:/data/db # Монтируем том для хранения данных MongoDB
+      - mongodb_data:/data/db
+
   evo_telebot:
     # Сервис evo_telebot
     platform: linux/amd64
-    build: . # Сборка контейнера из текущего каталога
+    build: .
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
@@ -26,16 +26,12 @@ services:
       MONGODB_DATABASE: timur
       MONGODB_HOSTNAME: mongodb
       TELEGRAM_TOKEN: "6908041033:AAH3bZffu70Bf5fFy00DeGy-KI0hXLMzs_w"
-
     volumes:
-      - ./app:/home/nonroot/app # Монтирование кода приложения в контейнер
-    #    volumes:
-    #      - ./:/app
-    command: sh -c "poetry run python3 bot/__init__.py" # Команда для запуска бота
+      - ./app:/home/nonroot/app
+    command: sh -c "ulimit -n 1024 && poetry run watchmedo auto-restart -d . -p '*.py' -R -- python3 bot/__init__.py"
 
     depends_on:
-      - mongodb # Зависимость: ждем, пока MongoDB будет доступна
-
+      - mongodb
 
 volumes:
-  mongodb_data: # Том для MongoDB, используется для сохранения данных
+  mongodb_data:

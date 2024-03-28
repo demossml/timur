@@ -7,3 +7,4 @@ from os import getenv
 
 
 TELEGRAM_TOKEN_2 = getenv("TELEGRAM_TOKEN")
+print(TELEGRAM_TOKEN_2)

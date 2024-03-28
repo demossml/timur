@@ -10,6 +10,7 @@ from util import format_message_list4
 import io
 from pprint import pprint
 import zipfile
+import requests
 
 
 import PyPDF2
@@ -144,11 +145,13 @@ def process_PDF_files(downloaded_zip_file):
 
 
 def process_PDF_files_rar(downloaded_rar_file):
+    pprint("process_PDF_files_rar")
     API_KEY = "e847ba51dfe5006957aca33cbd3e158f234b2bfe"
     try:
         with rarfile.RarFile(io.BytesIO(downloaded_rar_file), "r") as rar_ref:
             results = []  # Здесь будем хранить результаты обработки
             dict_ = {}
+            pprint(rar_ref)
             for file_name in rar_ref.namelist():
                 if file_name.lower().endswith(".pdf"):
                     pdf_content = rar_ref.read(file_name)
@@ -445,49 +448,42 @@ async def handle_reply_state(bot, message, session, next):
     # await next()
 
     if message.document:
-        pprint(message.document.mime_type)
-        if message.document.mime_type == "application/zip":  # Проверка на тип файла zip
-            pprint("zip")
 
-            # Получение информации о файле из сообщения
-            file_info = await bot.get_file(message.document.file_id)
-            downloaded_zip_file = await bot.download_file(file_info.file_path)
-            src_list = process_PDF_files(downloaded_zip_file)
-
-            # Сохранение информации о файле в сессию
-            session.params["inputs"][str(room)][input_name] = src_list
-        if (
-            message.document.mime_type == "application/x-rar-compressed"
-        ):  # Проверка на тип файла RAR
-            pprint("rar")
-
-            # Получение информации о файле из сообщения
-            file_info = await bot.get_file(message.document.file_id)
-            downloaded_rar_file = await bot.download_file(file_info.file_path)
-            src_list = process_PDF_files_rar(downloaded_rar_file)
-
-            # Сохранение информации о файле в сессию
-            session.params["inputs"][str(room)][input_name] = src_list
-
-        else:  # Если файл не является zip, обрабатываем его как обычный документ
-            # Получение информации о файле из сообщения
+        try:
+            mime_type = message.document.mime_type
             file_info = await bot.get_file(message.document.file_id)
             downloaded_file = await bot.download_file(file_info.file_path)
 
-            src_list = []
-            # Получение имени файла
-            src = message.document.file_name
-            src_list.append(src)
+            if mime_type == "application/zip":
+                src_list = process_PDF_files(downloaded_file)
+            elif mime_type == "application/x-rar":
+                src_list = process_PDF_files_rar(downloaded_file)
 
-            # Сохранение бинарных данных в MongoDB
-            pdf_file = PDFFile(name=src, content=downloaded_file)
-            pdf_file.save()
-
-            src_list.append(
-                str(pdf_file.id),
-            )
-            # Сохранение информации о файле в сессию
+            # Сохраняем информацию о файле в сессии
             session.params["inputs"][str(room)][input_name] = src_list
+
+        except Exception as e:
+            print(f"Произошла ошибка при обработке файла: {e}")
+
+        # else:  # Если файл не является zip, обрабатываем его как обычный документ
+        #     # Получение информации о файле из сообщения
+        #     file_info = await bot.get_file(message.document.file_id)
+        #     downloaded_file = await bot.download_file(file_info.file_path)
+
+        #     src_list = []
+        #     # Получение имени файла
+        #     src = message.document.file_name
+        #     src_list.append(src)
+
+        #     # Сохранение бинарных данных в MongoDB
+        #     pdf_file = PDFFile(name=src, content=downloaded_file)
+        #     pdf_file.save()
+
+        #     src_list.append(
+        #         str(pdf_file.id),
+        #     )
+        #     # Сохранение информации о файле в сессию
+        #     session.params["inputs"][str(room)][input_name] = src_list
 
         session.state = State.INPUT
         session.update(params=session.params, state=session.state)

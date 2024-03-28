@@ -5,7 +5,7 @@ from pprint import pprint
 import io
 
 
-name = "🗂️ Загрузить данные  zip-pdf ➡️"
+name = "🗂️ Загрузить данные zip-pdf ➡️"
 desc = "Загружает данне"
 mime = "file"
 
@@ -33,5 +33,5 @@ def generate(session: Session):
         item["closeDate"] = utcnow().isoformat()
         Clients.objects(Телефон=item["Телефон"]).update(**item, upsert=True)
         result_data.append(item)
-
+    pprint(2)
     return [{"Выгружено строк": len(params["file"])}], binary_stream

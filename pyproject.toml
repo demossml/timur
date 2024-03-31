@@ -32,6 +32,7 @@ psutil = "^5.9.8"
 rarfile = "^4.1"
 watchdog = "^4.0.0"
 unrar = "^0.4"
+russiannames = "^1.0"
 
 
 

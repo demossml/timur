@@ -169,37 +169,57 @@ def get_period_day(session: Session):
 
 
 # Получает список славарей
-# Отдает xls
-def json_to_xls_format_change(list: list):
-    book = Workbook()
+# # Отдает xls
+# def json_to_xls_format_change_(list: list):
+#     # Создаем новую книгу Excel
+#     book = Workbook()
 
-    # grab the active worksheet
-    sheet = book.active
-    sheet_row = ["A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1", "J1", "K1", "L1", "M1"]
-    columns_name = []
-    for item in list:
-        for k, v in item.items():
-            if k not in columns_name:
-                columns_name.append(k)
+#     # Выбираем активный лист в книге
+#     sheet = book.active
 
-    columns = 0
+#     # Задаем список, указывающий, в каких ячейках будут располагаться названия столбцов
+#     sheet_row = ["A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1", "J1", "K1", "L1", "M1"]
 
-    for name in columns_name:
-        sheet[sheet_row[columns]] = name
-        columns += 1
+#     # Создаем список для хранения названий столбцов
+#     columns_name = []
 
-    row = 2
-    for item in list:
-        if len(item) > 0:
-            last_column = 0
-            for k, v in item.items():
-                sheet[row][last_column].value = v
-                last_column += 1
-        row += 1
-    return book
+#     # Проходим по каждому элементу во входном списке
+#     for item in list:
+#         # Проходим по ключам и значениям элемента
+#         for k, v in item.items():
+#             # Если название ключа еще не встречалось, добавляем его в список названий столбцов
+#             if k not in columns_name:
+#                 columns_name.append(k)
+
+#     # Переменная для отслеживания текущего столбца
+#     columns = 0
+
+#     # Записываем названия столбцов в соответствующие ячейки
+#     for name in columns_name:
+#         sheet[sheet_row[columns]] = name
+#         columns += 1
+
+#     # Переменная для отслеживания текущей строки
+#     row = 2
+
+#     # Записываем данные из входного списка в ячейки, начиная со второй строки
+#     for item in list:
+#         # Проверяем, что элемент не пустой
+#         if len(item) > 0:
+#             last_column = 0
+#             # Проходим по ключам и значениям элемента
+#             for k, v in item.items():
+#                 # Записываем значение в соответствующую ячейк
+#                 sheet[row][last_column].value = v
+#                 last_column += 1
+#         row += 1  # Переходим к следующей строке
+
+#     # Возвращаем созданную книгу Excel
+#     return book
 
 
 def xls_to_json_format_change(book):
+
     # Получаем активный лист из книги Excel
     ws = book.active
 
@@ -225,3 +245,94 @@ def xls_to_json_format_change(book):
         if len(my_dict) > 0:  # Убеждаемся, что словарь не пустой
             my_list.append(my_dict)  # Добавляем словарь в список
     return my_list  # Возвращаем список словарей
+
+
+def he_she(data_list: list):
+    """
+    Разделяет список данных на два списка: один для мужчин, другой для женщин.
+
+    Args:
+        data_list (list): Список словарей с данными. Каждый словарь содержит информацию о человеке, включая ФИО.
+
+    Returns:
+        tuple: Кортеж из двух списков: первый список содержит данные о мужчинах, второй — о женщинах.
+            Первый элемент кортежа — список мужчин.
+            Второй элемент кортежа — список женщин.
+            Третий элемент кортежа — количество удаленных дубликатов для мужчин.
+            Четвертый элемент кортежа — количество удаленных дубликатов для женщин.
+    """
+    he = []  # Список для мужчин
+    she = []  # Список для женщин
+
+    # Создаем множество для хранения уникальных номеров телефонов
+    phones_she = set()
+    phones_he = set()
+
+    deleted_duplicates_he = 0
+    deleted_duplicates_she = 0
+
+    for item in data_list:
+        try:
+            if item["ФИО"][-1].upper() == "А":
+                if item["Телефон"] not in phones_she:
+                    she.append(item)  # Добавляем женщину в список
+                else:
+                    deleted_duplicates_she += 1
+                phones_she.add(item["Телефон"])  # Иначе добавляем телефон в множество
+            else:
+                if item["Телефон"] not in phones_he:
+                    he.append(item)  # Добавляем мужчину в список
+                else:
+                    deleted_duplicates_he += 1
+                phones_he.add(item["Телефон"])  # Иначе добавляем телефон в множество
+        except IndexError:
+            print("Ошибка: Неправильный формат данных ФИО для элемента:", item)
+
+    return he, she, deleted_duplicates_he, deleted_duplicates_she
+
+
+def json_to_xls_format_change(data_list: list, gender: str, number_of_lins: int):
+    # Создаем новую книгу Excel
+    book = Workbook()
+
+    # Выбираем активный лист в книге
+    sheet = book.active
+
+    # Используем множество для хранения уникальных названий столбцов
+    columns_name = set()
+
+    # Создаем множество для хранения уникальных номеров телефонов
+    # phones = set()
+
+    # Проходим по каждому элементу во входном списке
+    for item in data_list:
+        # Добавляем названия столбцов в множество
+        columns_name.update(item.keys())
+
+    # Записываем названия столбцов в первую строку
+    for col_idx, column_name in enumerate(columns_name, start=1):
+        sheet.cell(row=1, column=col_idx, value=column_name)
+
+    # Записываем данные из входного списка в ячейки и удаляем дубликаты по столбцу "Телефон"
+    deleted_duplicates = 0
+
+    # Записываем данные из входного списка в ячейки
+    for row_idx, item in enumerate(data_list, start=2):
+        # Проходим по названиям столбцов
+        for col_idx, column_name in enumerate(columns_name, start=1):
+            # Записываем значение в соответствующую ячейку, если оно есть в словаре
+            sheet.cell(row=row_idx, column=col_idx, value=item.get(column_name))
+
+        # # Получаем значение из столбца "Телефон" текущей строки
+        # phone = item.get("Телефон")
+        # if phone in phones:  # Если телефон уже встречался, удаляем строку
+        #     sheet.delete_rows(row_idx)
+        #     deleted_duplicates += 1
+        # else:
+        #     phones.add(phone)  # Иначе добавляем телефон в множество
+
+    # Возвращаем созданную книгу Excel и количество удаленных дубликатов
+    return book, {
+        f"Выгружено строк {gender}": sheet.max_row - 1,
+        "Кол. удал. дубл.": number_of_lins,
+    }

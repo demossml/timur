@@ -13,8 +13,6 @@ import zipfile
 import requests
 
 
-import PyPDF2
-import time
 import os
 import re
 import json
@@ -89,9 +87,9 @@ def process_PDF_files(downloaded_zip_file):
                                     address_ = (
                                         address_
                                         + " "
-                                        + line.replace("Адрес: ", "").replace(
-                                            " ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", ""
-                                        )
+                                        + line.replace("Адрес: ", "")
+                                        .replace(" ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
+                                        .replace("ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
                                     )
                                     if "ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ" in line:
                                         address__ = False
@@ -103,7 +101,9 @@ def process_PDF_files(downloaded_zip_file):
                                     address_ = (
                                         line.replace("Адрес: ", "")
                                         .replace(" ПВЗ: ", "")
+                                        .replace("ПВЗ: ", "")
                                         .replace(" ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
+                                        .replace("ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
                                     )
                                 if "Арт." in line:
                                     info_ = line.split(" ")
@@ -192,9 +192,9 @@ def process_PDF_files_rar(downloaded_rar_file):
                                     address_ = (
                                         address_
                                         + " "
-                                        + line.replace("Адрес: ", "").replace(
-                                            " ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", ""
-                                        )
+                                        + line.replace("Адрес: ", "")
+                                        .replace(" ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
+                                        .replace("ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
                                     )
                                     if "ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ" in line:
                                         address__ = False
@@ -206,7 +206,9 @@ def process_PDF_files_rar(downloaded_rar_file):
                                     address_ = (
                                         line.replace("Адрес: ", "")
                                         .replace(" ПВЗ: ", "")
+                                        .replace("ПВЗ: ", "")
                                         .replace(" ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
+                                        .replace("ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
                                     )
                                 if "Арт." in line:
                                     info_ = line.split(" ")
@@ -521,9 +523,24 @@ async def handle_ready_state(bot, message, session, next):
         except Exception as e:
             print(f"Error sending messages: {e}")
         try:
-            doc_bytes = result[1]
-            doc_bytes.name = "book.xlsx"  # Устанавливаем имя файла в объекте BytesIO
-            await bot.send_document(message.chat_id, document=doc_bytes)
+            book_he = result[1]
+            # pprint(book_he)
+            binary_book_he = io.BytesIO()
+            book_he.save(binary_book_he)
+            binary_book_he.seek(0)
+            binary_book_he.name = (
+                "book_he.xlsx"  # Устанавливаем имя файла в объекте BytesIO
+            )
+            await bot.send_document(message.chat_id, document=binary_book_he)
+
+            book_she = result[2]
+            binary_book_she = io.BytesIO()
+            book_she.save(binary_book_she)
+            binary_book_she.seek(0)
+            binary_book_she.name = (
+                "book_she.xlsx"  # Устанавливаем имя файла в объекте BytesIO
+            )
+            await bot.send_document(message.chat_id, document=binary_book_she)
         except Exception as e:
             print(f"Error sending document: {e}")
 

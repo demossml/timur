@@ -423,32 +423,6 @@ async def handle_reply_state(bot, message, session, next):
         ].file_id
         session.update(params=session.params)
 
-    # Проверка, является ли сообщение документом
-    # if message.document:
-    #     # Получение информации о файле из сообщения
-    #     file_info = await bot.get_file(message.document.file_id)
-    #     downloaded_file = await bot.download_file(file_info.file_path)
-
-    #     src_list = []
-    #     # Получение имени файла
-    #     src = message.document.file_name
-    #     src_list.append(src)
-
-    #     # Сохранение бинарных данных в MongoDB
-    #     pdf_file = PDFFile(name=src, content=downloaded_file)
-    #     pdf_file.save()
-
-    #     # Сохранение информации о файле в сессию
-    #     session.params["inputs"][str(room)][input_name] = {
-    #         "file_id": str(pdf_file.id),
-    #         "file_name": src,
-    #     }
-
-    # session.state = State.INPUT
-    # session.update(params=session.params, state=session.state)
-    # # session.save()
-    # await next()
-
     if message.document:
 
         try:
@@ -467,30 +441,10 @@ async def handle_reply_state(bot, message, session, next):
         except Exception as e:
             print(f"Произошла ошибка при обработке файла: {e}")
 
-        # else:  # Если файл не является zip, обрабатываем его как обычный документ
-        #     # Получение информации о файле из сообщения
-        #     file_info = await bot.get_file(message.document.file_id)
-        #     downloaded_file = await bot.download_file(file_info.file_path)
-
-        #     src_list = []
-        #     # Получение имени файла
-        #     src = message.document.file_name
-        #     src_list.append(src)
-
-        #     # Сохранение бинарных данных в MongoDB
-        #     pdf_file = PDFFile(name=src, content=downloaded_file)
-        #     pdf_file.save()
-
-        #     src_list.append(
-        #         str(pdf_file.id),
-        #     )
-        #     # Сохранение информации о файле в сессию
-        #     session.params["inputs"][str(room)][input_name] = src_list
-
-        session.state = State.INPUT
-        session.update(params=session.params, state=session.state)
-        # session.save()
-        await next()
+    session.state = State.INPUT
+    session.update(params=session.params, state=session.state)
+    # session.save()
+    await next()
 
 
 async def handle_ready_state(bot, message, session, next):

@@ -291,6 +291,69 @@ def he_she(data_list: list):
     return he, she, deleted_duplicates_he, deleted_duplicates_she
 
 
+def he_she_item(clients: object):
+    """
+    Разделяет список данных на два списка: один для мужчин, другой для женщин.
+
+    Args:
+        data_list (list): Список словарей с данными. Каждый словарь содержит информацию о человеке, включая ФИО.
+
+    Returns:
+        tuple: Кортеж из двух списков: первый список содержит данные о мужчинах, второй — о женщинах.
+            Первый элемент кортежа — список мужчин.
+            Второй элемент кортежа — список женщин.
+            Третий элемент кортежа — количество удаленных дубликатов для мужчин.
+            Четвертый элемент кортежа — количество удаленных дубликатов для женщин.
+    """
+    he = []  # Список для мужчин
+    she = []  # Список для женщин
+
+    # Создаем множество для хранения уникальных номеров телефонов
+    phones_she = set()
+    phones_he = set()
+
+    deleted_duplicates_he = 0
+    deleted_duplicates_she = 0
+
+    for item in clients:
+        try:
+            if item["ФИО"][-1].upper() == "А":
+                if item["Телефон"] not in phones_she:
+
+                    she.append(
+                        {
+                            "Телефон": item["Телефон"],
+                            "Адрес": item["Адрес"],
+                            "ИНН": item["ИНН"],
+                            "Компания": item["Компания"],
+                            "Продукт": item["Продукт"],
+                            "ФИО": item["ФИО"],
+                        }
+                    )  # Добавляем женщину в список
+                else:
+                    deleted_duplicates_she += 1
+                phones_she.add(item["Телефон"])  # Иначе добавляем телефон в множество
+            else:
+                if item["Телефон"] not in phones_he:
+                    he.append(
+                        {
+                            "Телефон": item["Телефон"],
+                            "Адрес": item["Адрес"],
+                            "ИНН": item["ИНН"],
+                            "Компания": item["Компания"],
+                            "Продукт": item["Продукт"],
+                            "ФИО": item["ФИО"],
+                        }
+                    )  # Добавляем мужчину в список
+                else:
+                    deleted_duplicates_he += 1
+                phones_he.add(item["Телефон"])  # Иначе добавляем телефон в множество
+        except IndexError:
+            print("Ошибка: Неправильный формат данных ФИО для элемента:", item)
+
+    return he, she, deleted_duplicates_he, deleted_duplicates_she
+
+
 def json_to_xls_format_change(data_list: list, gender: str, number_of_lins: int):
     # Создаем новую книгу Excel
     book = Workbook()

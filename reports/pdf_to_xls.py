@@ -12,7 +12,7 @@ mime = "file"
 
 class FileInput:
     name = "Файл"
-    desc = "📂 Отправте файл в формате zip/rar c pdf ➡️"
+    desc = "🗃️ Отправте файл в формате zip/rar c pdf ➡️"
     type = "FILE"
 
 

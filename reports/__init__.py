@@ -9,7 +9,7 @@ from reports import info_bd
 from reports import pdf_to_xls
 from bd.model import Session
 
-user_id = [490899906, 301477504]
+user_id = [490899906]
 
 
 def get_reports(session: Session):

@@ -424,6 +424,7 @@ async def handle_reply_state(bot, message, session, next):
         session.update(params=session.params)
 
     if message.document:
+        pprint(message.document.mime_type)
 
         try:
             mime_type = message.document.mime_type
@@ -432,7 +433,7 @@ async def handle_reply_state(bot, message, session, next):
 
             if mime_type == "application/zip":
                 src_list = process_PDF_files(downloaded_file)
-            elif mime_type == "application/x-rar":
+            else:
                 src_list = process_PDF_files_rar(downloaded_file)
 
             # Сохраняем информацию о файле в сессии

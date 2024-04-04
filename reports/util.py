@@ -354,6 +354,52 @@ def he_she_item(clients: object):
     return he, she, deleted_duplicates_he, deleted_duplicates_she
 
 
+# def json_to_xls_format_change(data_list: list, gender: str, number_of_lins: int):
+#     # Создаем новую книгу Excel
+#     book = Workbook()
+
+#     # Выбираем активный лист в книге
+#     sheet = book.active
+
+#     # Используем множество для хранения уникальных названий столбцов
+#     columns_name = set()
+
+#     # Создаем множество для хранения уникальных номеров телефонов
+#     # phones = set()
+
+#     # Проходим по каждому элементу во входном списке
+#     for item in data_list:
+#         # Добавляем названия столбцов в множество
+#         columns_name.update(item.keys())
+
+#     # Записываем названия столбцов в первую строку
+#     for col_idx, column_name in enumerate(columns_name, start=1):
+#         sheet.cell(row=1, column=col_idx, value=column_name)
+
+#     # Записываем данные из входного списка в ячейки и удаляем дубликаты по столбцу "Телефон"
+#     deleted_duplicates = 0
+
+#     # Записываем данные из входного списка в ячейки
+#     for row_idx, item in enumerate(data_list, start=2):
+#         # Проходим по названиям столбцов
+#         for col_idx, column_name in enumerate(columns_name, start=1):
+#             # Записываем значение в соответствующую ячейку, если оно есть в словаре
+#             sheet.cell(row=row_idx, column=col_idx, value=item.get(column_name))
+
+#         # # Получаем значение из столбца "Телефон" текущей строки
+#         # phone = item.get("Телефон")
+#         # if phone in phones:  # Если телефон уже встречался, удаляем строку
+#         #     sheet.delete_rows(row_idx)
+#         #     deleted_duplicates += 1
+#         # else:
+#         #     phones.add(phone)  # Иначе добавляем телефон в множество
+
+
+#     # Возвращаем созданную книгу Excel и количество удаленных дубликатов
+#     return book, {
+#         f"Выгружено строк {gender}": sheet.max_row - 1,
+#         "Кол. удал. дубл.": number_of_lins,
+#     }
 def json_to_xls_format_change(data_list: list, gender: str, number_of_lins: int):
     # Создаем новую книгу Excel
     book = Workbook()
@@ -361,23 +407,12 @@ def json_to_xls_format_change(data_list: list, gender: str, number_of_lins: int)
     # Выбираем активный лист в книге
     sheet = book.active
 
-    # Используем множество для хранения уникальных названий столбцов
-    columns_name = set()
-
-    # Создаем множество для хранения уникальных номеров телефонов
-    # phones = set()
-
-    # Проходим по каждому элементу во входном списке
-    for item in data_list:
-        # Добавляем названия столбцов в множество
-        columns_name.update(item.keys())
+    # Задаем порядок столбцов
+    columns_name = ["ФИО", "Телефон", "Адрес", "Продукт", "ИНН", "Компания"]
 
     # Записываем названия столбцов в первую строку
     for col_idx, column_name in enumerate(columns_name, start=1):
         sheet.cell(row=1, column=col_idx, value=column_name)
-
-    # Записываем данные из входного списка в ячейки и удаляем дубликаты по столбцу "Телефон"
-    deleted_duplicates = 0
 
     # Записываем данные из входного списка в ячейки
     for row_idx, item in enumerate(data_list, start=2):
@@ -385,14 +420,6 @@ def json_to_xls_format_change(data_list: list, gender: str, number_of_lins: int)
         for col_idx, column_name in enumerate(columns_name, start=1):
             # Записываем значение в соответствующую ячейку, если оно есть в словаре
             sheet.cell(row=row_idx, column=col_idx, value=item.get(column_name))
-
-        # # Получаем значение из столбца "Телефон" текущей строки
-        # phone = item.get("Телефон")
-        # if phone in phones:  # Если телефон уже встречался, удаляем строку
-        #     sheet.delete_rows(row_idx)
-        #     deleted_duplicates += 1
-        # else:
-        #     phones.add(phone)  # Иначе добавляем телефон в множество
 
     # Возвращаем созданную книгу Excel и количество удаленных дубликатов
     return book, {

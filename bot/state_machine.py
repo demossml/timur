@@ -296,7 +296,7 @@ async def handle_message(bot: telebot.TeleBot, message: Message, session: Sessio
     except Exception as ex:
         # print(ex)
         # raise ex
-        await bot.send_message(message.chat_id, "Произошла ошибка")
+        await bot.send_message(message.chat_id, f"Произошла ошибка {ex}")
         session.state = State.INIT
         next()
 
@@ -441,6 +441,7 @@ async def handle_reply_state(bot, message, session, next):
 
         except Exception as e:
             print(f"Произошла ошибка при обработке файла: {e}")
+            await bot.send_message(message.chat_id, f"Error sending messages: {e}")
 
     session.state = State.INPUT
     session.update(params=session.params, state=session.state)
@@ -477,6 +478,8 @@ async def handle_ready_state(bot, message, session, next):
             ]
         except Exception as e:
             print(f"Error sending messages: {e}")
+            await bot.send_message(message.chat_id, f"Error sending messages: {e}")
+
         try:
             book_he = result[1]
             # pprint(book_he)
@@ -498,6 +501,7 @@ async def handle_ready_state(bot, message, session, next):
             await bot.send_document(message.chat_id, document=binary_book_she)
         except Exception as e:
             print(f"Error sending document: {e}")
+            await bot.send_message(message.chat_id, f"Error sending messages: {e}")
 
     else:
         messages = format_message_list4(result)

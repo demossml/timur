@@ -25,6 +25,22 @@ import time
 import rarfile
 
 
+def filter_info(info_):
+    # Создаем пустую строку для хранения отфильтрованных элементов
+    filtered_str = " ".join(
+        [
+            # Проходим по каждому элементу списка info_
+            item
+            # Отбираем элементы, которые содержат хотя бы одну букву или символ "№"
+            for item in info_
+            if any(char.isalpha() or char == "№" for char in item)
+            # Отбираем элементы, которые не содержат строки "БЕЗ" или "НДС"
+            and item not in ["БЕЗ", "НДС"]
+        ]
+    )
+    return filtered_str
+
+
 def find_INN(resource, query, API_KEY):
     # Функция для поиска ИНН по запросу с использованием API Dadata
     BASE_URL = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/"
@@ -109,14 +125,15 @@ def process_PDF_files(downloaded_zip_file):
                                     info_ = line.split(" ")
                                     if len(info_) > 2:
                                         if len(info_[2]) > 1:
-                                            product_ = info_[2]
+                                            product_ = filter_info(info_)
+
                                         else:
                                             info_2 = (
                                                 line.replace(")", "__")
                                                 .replace("(", "__")
                                                 .split("__")
                                             )
-                                            product_ = info_2[2]
+                                            product_ = filter_info(info_2)
 
                             result_entry = {
                                 "ФИО": name_.strip(),
@@ -214,14 +231,17 @@ def process_PDF_files_rar(downloaded_rar_file):
                                     info_ = line.split(" ")
                                     if len(info_) > 2:
                                         if len(info_[2]) > 1:
-                                            product_ = info_[2]
+
+                                            product_ = filter_info(info_)
+
                                         else:
                                             info_2 = (
                                                 line.replace(")", "__")
                                                 .replace("(", "__")
                                                 .split("__")
                                             )
-                                            product_ = info_2[2]
+
+                                            product_ = filter_info(info_2)
 
                             result_entry = {
                                 "ФИО": name_.strip(),
@@ -293,10 +313,10 @@ async def handle_message(bot: telebot.TeleBot, message: Message, session: Sessio
     next = lambda: handle_message(bot, message, session)
     try:
         await states[session.state](bot, message, session, next)
-    except Exception as ex:
+    except Exception as e:
         # print(ex)
         # raise ex
-        await bot.send_message(message.chat_id, f"Произошла ошибка {ex}")
+        await bot.send_message(message.chat_id, f"Произошла ошибка {e}")
         session.state = State.INIT
         next()
 

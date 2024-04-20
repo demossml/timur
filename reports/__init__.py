@@ -3,13 +3,16 @@
 from reports import download_data
 from reports import upload_data_
 from reports import info_bd
+from reports import get_salary
+from reports import get_order
 
 # from reports import upload_data
 
 from reports import pdf_to_xls
 from bd.model import Session
 
-user_id = [490899906]
+user_id = [49089990677]
+timur_id = [301477504, 490899906]
 
 
 def get_reports(session: Session):
@@ -18,7 +21,16 @@ def get_reports(session: Session):
             "info_bd": info_bd,
             "upload_data": upload_data_,
             "pdf_to_xls": pdf_to_xls,
+            "get_salary": get_salary,
+            "get_order": get_order,
         }
+    elif session.user_id in timur_id:
+        return {
+            "pdf_to_xls": pdf_to_xls,
+            "get_salary": get_salary,
+            "get_order": get_order,
+        }
+
     else:
         return {
             "pdf_to_xls": pdf_to_xls,
@@ -30,4 +42,6 @@ reports = {
     "upload_data": upload_data_,
     "pdf_to_xls": pdf_to_xls,
     "info_bd": info_bd,
+    "get_salary": get_salary,
+    "get_order": get_order,
 }

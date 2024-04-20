@@ -6,7 +6,7 @@ from state_machine import handle_message
 
 async def handler(params, bot):
     message = create_massage(params)
-    # print(message)
+    print(message)
     session = get_session(message.user_id)
     session.message = message
     # session.employee = find_employee(message.user_id)

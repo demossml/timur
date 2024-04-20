@@ -34,6 +34,9 @@ watchdog = "^4.0.0"
 unrar = "^0.4"
 russiannames = "^1.0"
 
+xlrd = "^2.0.1"
+pandas = "^2.2.2"
+
 
 
 [build-system]

@@ -7,10 +7,22 @@ from arrow import utcnow
 from bd.model import Message, Session, PDFFile
 from reports import reports, get_reports
 from util import format_message_list4
+
+# from reports.util import xls_to_json_format_change
 import io
 from pprint import pprint
 import zipfile
 import requests
+from openpyxl import load_workbook
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+import xlrd
+import openpyxl
+import mimetypes
+import os
+
+
+# import pandas as pd
 
 
 import os
@@ -23,6 +35,52 @@ import json
 import re
 import time
 import rarfile
+import xlsxwriter
+
+
+import io
+
+
+def xls_to_json_format_change(downloaded_file):
+    try:
+        # Создаем буферизированный объект для чтения из загруженного файла
+        file_buffer = io.BytesIO(downloaded_file)
+
+        # Открываем книгу Excel
+        book = load_workbook(file_buffer)
+
+        # Получаем активный лист из книги Excel
+        ws = book.active
+
+        my_list = []  # Создаем пустой список для хранения словарей
+
+        # Находим номер последнего столбца и строки
+        last_column = len(list(ws.columns))
+        last_row = len(list(ws.rows))
+
+        # Проходимся по каждой строке в таблице Excel
+        for row in range(1, last_row + 1):
+            my_dict = {}  # Создаем пустой словарь для текущей строки
+            # Проходимся по каждому столбцу в текущей строке
+            for column in range(1, last_column + 1):
+                column_letter = get_column_letter(
+                    column
+                )  # Получаем буквенное обозначение столбца
+
+                if row > 1:  # Пропускаем первую строку, так как это заголовки
+                    # Добавляем элементы в словарь в формате "значение заголовка: значение ячейки"
+                    my_dict[str(ws[column_letter + str(1)].value)] = ws[
+                        column_letter + str(row)
+                    ].value
+            if len(my_dict) > 0:  # Убеждаемся, что словарь не пустой
+                my_list.append(my_dict)  # Добавляем словарь в список
+        return my_list  # Возвращаем список словарей
+    except openpyxl.utils.exceptions.InvalidFileException:
+        print("Загруженный файл не является действительным файлом Excel.")
+        return None
+    except Exception as e:
+        print(f"Произошла ошибка: {e}")
+        return None
 
 
 def filter_info(info_):
@@ -451,11 +509,39 @@ async def handle_reply_state(bot, message, session, next):
             file_info = await bot.get_file(message.document.file_id)
             downloaded_file = await bot.download_file(file_info.file_path)
 
-            if mime_type == "application/zip":
+            # Получаем имя файла
+            file_name = os.path.basename(file_info.file_path)
+            print("File name:", file_name)
+
+            # Проверяем расширение файла
+            file_extension = os.path.splitext(file_name)[1]
+            print("File extension:", file_extension)
+
+            if not file_extension:
+                file_extension = mimetypes.guess_extension(mime_type)
+
+            type_xls = [
+                "application/vnd.ms-excel",
+                "application/x-msexcel",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/x-msexcel",
+            ]
+            #  Проверяем тип MIME файла
+            if file_extension in [".xls", ".xlsx"]:
+                print("xls")
+
+                src_list = xls_to_json_format_change(downloaded_file)
+                # pprint(src_list)
+                # print("xls")
+
+                # src_list = xls_to_json_format_change(downloaded_file)
+                # pprint(src_list)
+
+            elif mime_type == "application/zip":
                 src_list = process_PDF_files(downloaded_file)
+
             else:
                 src_list = process_PDF_files_rar(downloaded_file)
-
             # Сохраняем информацию о файле в сессии
             session.params["inputs"][str(room)][input_name] = src_list
 
@@ -507,18 +593,18 @@ async def handle_ready_state(bot, message, session, next):
             book_he.save(binary_book_he)
             binary_book_he.seek(0)
             binary_book_he.name = (
-                "book_he.xlsx"  # Устанавливаем имя файла в объекте BytesIO
+                "book_1.xlsx"  # Устанавливаем имя файла в объекте BytesIO
             )
             await bot.send_document(message.chat_id, document=binary_book_he)
-
-            book_she = result[2]
-            binary_book_she = io.BytesIO()
-            book_she.save(binary_book_she)
-            binary_book_she.seek(0)
-            binary_book_she.name = (
-                "book_she.xlsx"  # Устанавливаем имя файла в объекте BytesIO
-            )
-            await bot.send_document(message.chat_id, document=binary_book_she)
+            if len(result) > 3:
+                book_she = result[2]
+                binary_book_she = io.BytesIO()
+                book_she.save(binary_book_she)
+                binary_book_she.seek(0)
+                binary_book_she.name = (
+                    "book_2.xlsx"  # Устанавливаем имя файла в объекте BytesIO
+                )
+                await bot.send_document(message.chat_id, document=binary_book_she)
         except Exception as e:
             print(f"Error sending document: {e}")
             await bot.send_message(message.chat_id, f"Error sending messages: {e}")

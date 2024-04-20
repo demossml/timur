@@ -426,3 +426,75 @@ def json_to_xls_format_change(data_list: list, gender: str, number_of_lins: int)
         f"Выгружено строк {gender}": sheet.max_row - 1,
         "Кол. удал. дубл.": number_of_lins,
     }
+
+
+def json_to_xls_format_change_(data_list: list):
+    try:
+        # Создаем новую книгу Excel
+        book = Workbook()
+
+        # Выбираем активный лист в книге
+        sheet = book.active
+
+        # Задаем порядок столбцов
+        columns_name = [
+            "Сотрудник",
+            "Сумма",
+            "%",
+            "Итог%",
+            "Оклад",
+            "Отпускные",
+            "Офчасть",
+            "Долг",
+            "доп премия",
+            "Итог",
+        ]
+
+        # Записываем названия столбцов в первую строку
+        for col_idx, column_name in enumerate(columns_name, start=1):
+            sheet.cell(row=1, column=col_idx, value=column_name)
+
+        # Записываем данные из входного списка в ячейки
+        for row_idx, item in enumerate(data_list, start=2):
+            # Проходим по названиям столбцов
+            for col_idx, column_name in enumerate(columns_name, start=1):
+                # Записываем значение в соответствующую ячейку, если оно есть в словаре
+                sheet.cell(row=row_idx, column=col_idx, value=item.get(column_name))
+
+        # Возвращаем созданную книгу Excel и количество удаленных дубликатов
+        return book
+    except Exception as e:
+        # В случае ошибки выводим сообщение и возвращаем None
+        print(f"An error occurred: {e}")
+        return None
+
+
+# Получает список славарей
+# Отдает xls
+def json_to_xls_format_change___(list: list):
+    book = Workbook()
+
+    # grab the active worksheet
+    sheet = book.active
+    sheet_row = ["A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1", "J1", "K1", "L1", "M1"]
+    columns_name = []
+    for item in list:
+        for k, v in item.items():
+            if k not in columns_name:
+                columns_name.append(k)
+
+    columns = 0
+
+    for name in columns_name:
+        sheet[sheet_row[columns]] = name
+        columns += 1
+
+    row = 2
+    for item in list:
+        if len(item) > 0:
+            last_column = 0
+            for k, v in item.items():
+                sheet[row][last_column].value = v
+                last_column += 1
+        row += 1
+    return book

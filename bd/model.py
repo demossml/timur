@@ -107,6 +107,12 @@ class Clients(DynamicDocument):
     pass
 
 
+class Documents(DynamicDocument):
+    """Содержит данные документов"""
+
+    pass
+
+
 class File(Document):
     binary_data = BinaryField()
 

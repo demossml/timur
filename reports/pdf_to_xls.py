@@ -43,4 +43,4 @@ def generate(session: Session):
         item["closeDate"] = utcnow().isoformat()
         Clients.objects(Телефон=item["Телефон"]).update(**item, upsert=True)
         result_data.append(item)
-    return data_report, book_he[0], book_she[0]
+    return data_report, [book_he[0], book_she[0]]

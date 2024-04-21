@@ -114,8 +114,8 @@ def generate(session: Session):
                 format_order.update({str(k): v})
 
             result.update(format_order)
-            pprint(item["Сотрудник"])
-            pprint(dict_order[item["Сотрудник"]])
+            # pprint(item["Сотрудник"])
+            # pprint(dict_order[item["Сотрудник"]])
             result_up.update(
                 {
                     "closeDate": utcnow().shift(hours=3).isoformat(),
@@ -127,13 +127,25 @@ def generate(session: Session):
             Documents.objects(closeDate=result_up["closeDate"]).update(
                 **result_up, upsert=True
             )
+    prefix = ["POD_", "SKP_", "UDL_", "M31_"]
 
-    book = json_to_xls_format_change_(total_date)
+    # Initialize a dictionary to store lists based on prefix
+    prefix_dict: dict = {p: [] for p in prefix}
 
+    # Iterate over the date list and append each element to the corresponding list in prefix_dict
+    for item in total_date:
+        for p in prefix:
+            if item["Сотрудник"].startswith(p):
+                prefix_dict[p].append(item)
+
+    books = []
+    for k, v in prefix_dict.items():
+        if len(v) > 0:
+            books.append(json_to_xls_format_change_(v))
     total_date.append(
         {
             "closeDate": utcnow().shift(hours=3).isoformat()[:10],
             "Итог": total_sum,
         }
     )
-    return total_date, book
+    return total_date, books

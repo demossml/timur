@@ -587,24 +587,28 @@ async def handle_ready_state(bot, message, session, next):
             await bot.send_message(message.chat_id, f"Error sending messages: {e}")
 
         try:
-            book_he = result[1]
-            # pprint(book_he)
-            binary_book_he = io.BytesIO()
-            book_he.save(binary_book_he)
-            binary_book_he.seek(0)
-            binary_book_he.name = (
-                "book_1.xlsx"  # Устанавливаем имя файла в объекте BytesIO
-            )
-            await bot.send_document(message.chat_id, document=binary_book_he)
-            if len(result) > 3:
-                book_she = result[2]
-                binary_book_she = io.BytesIO()
-                book_she.save(binary_book_she)
-                binary_book_she.seek(0)
-                binary_book_she.name = (
-                    "book_2.xlsx"  # Устанавливаем имя файла в объекте BytesIO
+            book_number = 2
+            for book in result[1]:
+                book_name = "book_" + str(book_number) + ".xlsx"
+                # book_he = result[1]
+                # pprint(book_he)
+                binary_book_he = io.BytesIO()
+                book.save(binary_book_he)
+                binary_book_he.seek(0)
+                binary_book_he.name = (
+                    book_name  # Устанавливаем имя файла в объекте BytesIO
                 )
-                await bot.send_document(message.chat_id, document=binary_book_she)
+                await bot.send_document(message.chat_id, document=binary_book_he)
+                book_number += 1
+            # if len(result) > 3:
+            #     book_she = result[2]
+            #     binary_book_she = io.BytesIO()
+            #     book_she.save(binary_book_she)
+            #     binary_book_she.seek(0)
+            #     binary_book_she.name = (
+            #         "book_2.xlsx"  # Устанавливаем имя файла в объекте BytesIO
+            #     )
+            #     await bot.send_document(message.chat_id, document=binary_book_she)
         except Exception as e:
             print(f"Error sending document: {e}")
             await bot.send_message(message.chat_id, f"Error sending messages: {e}")

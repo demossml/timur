@@ -1,10 +1,7 @@
 from bd.model import Clients, Documents
 from arrow import utcnow, get
 from bd.model import Session, Clients
-from .util import xls_to_json_format_change
 from pprint import pprint
-from openpyxl import load_workbook, Workbook
-from openpyxl.utils import get_column_letter, get_column_letter
 
 
 name = "📦 Get Order ➡️"
@@ -26,7 +23,7 @@ def generate(session: Session):
     params = session.params["inputs"]["0"]
 
     order_ = int(params["order"])
-    pprint(type(order_))
+    # pprint(type(order_))
     try:
 
         document = Documents.objects(order_list__in=[order_])

@@ -4,352 +4,24 @@ import telebot
 from telebot import types
 from arrow import utcnow
 
-from bd.model import Message, Session, PDFFile
-from reports import reports, get_reports
-from util import format_message_list4
-
-# from reports.util import xls_to_json_format_change
-import io
 from pprint import pprint
-import zipfile
-import requests
-from openpyxl import load_workbook
-from openpyxl import Workbook
-from openpyxl.utils import get_column_letter
-import xlrd
-import openpyxl
 import mimetypes
 import os
-
-
-# import pandas as pd
-
-
-import os
-import re
-import json
-import requests
-import PyPDF2
-import traceback
-import json
-import re
+import sys  # Импортируем модуль sys для получения информации о текущем исключении
+import asyncio
 import time
-import rarfile
-import xlsxwriter
-
-
 import io
 
 
-def xls_to_json_format_change(downloaded_file):
-    try:
-        # Создаем буферизированный объект для чтения из загруженного файла
-        file_buffer = io.BytesIO(downloaded_file)
-
-        # Открываем книгу Excel
-        book = load_workbook(file_buffer)
-
-        # Получаем активный лист из книги Excel
-        ws = book.active
-
-        my_list = []  # Создаем пустой список для хранения словарей
-
-        # Находим номер последнего столбца и строки
-        last_column = len(list(ws.columns))
-        last_row = len(list(ws.rows))
-
-        # Проходимся по каждой строке в таблице Excel
-        for row in range(1, last_row + 1):
-            my_dict = {}  # Создаем пустой словарь для текущей строки
-            # Проходимся по каждому столбцу в текущей строке
-            for column in range(1, last_column + 1):
-                column_letter = get_column_letter(
-                    column
-                )  # Получаем буквенное обозначение столбца
-
-                if row > 1:  # Пропускаем первую строку, так как это заголовки
-                    # Добавляем элементы в словарь в формате "значение заголовка: значение ячейки"
-                    my_dict[str(ws[column_letter + str(1)].value)] = ws[
-                        column_letter + str(row)
-                    ].value
-            if len(my_dict) > 0:  # Убеждаемся, что словарь не пустой
-                my_list.append(my_dict)  # Добавляем словарь в список
-        return my_list  # Возвращаем список словарей
-    except openpyxl.utils.exceptions.InvalidFileException:
-        print("Загруженный файл не является действительным файлом Excel.")
-        return None
-    except Exception as e:
-        print(f"Произошла ошибка: {e}")
-        return None
-
-
-def filter_info(info_):
-    # Создаем пустую строку для хранения отфильтрованных элементов
-    filtered_str = " ".join(
-        [
-            # Проходим по каждому элементу списка info_
-            item
-            # Отбираем элементы, которые содержат хотя бы одну букву или символ "№"
-            for item in info_
-            if any(char.isalpha() or char == "№" for char in item)
-            # Отбираем элементы, которые не содержат строки "БЕЗ" или "НДС"
-            and item not in ["БЕЗ", "НДС"]
-        ]
-    )
-    return filtered_str
-
-
-def find_INN(resource, query, API_KEY):
-    # Функция для поиска ИНН по запросу с использованием API Dadata
-    BASE_URL = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/"
-    url = BASE_URL + resource
-    headers = {
-        "Authorization": "Token " + API_KEY,
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
-    data = {"query": query}
-    # Отправляем POST-запрос к API для поиска ИНН
-    res = requests.post(url, data=json.dumps(data), headers=headers)
-    # Возвращаем JSON-ответ
-    return res.json()
-
-
-def process_PDF_files(downloaded_zip_file):
-    API_KEY = "e847ba51dfe5006957aca33cbd3e158f234b2bfe"
-    try:
-        with zipfile.ZipFile(io.BytesIO(downloaded_zip_file), "r") as zip_ref:
-            results = []  # Здесь будем хранить результаты обработки
-            dict_ = {}
-            for file_name in zip_ref.namelist():
-                if file_name.lower().endswith(".pdf"):
-                    pdf_content = zip_ref.read(file_name)
-                    pdf_file = io.BytesIO(pdf_content)
-                    try:
-                        pdf_reader = PyPDF2.PdfReader(pdf_file)
-                        for page_num in range(len(pdf_reader.pages)):
-                            page = pdf_reader.pages[page_num]
-                            page_content = page.extract_text()
-                            page_content = page_content.split("\n")
-                            name_ = ""
-                            phone_ = ""
-                            address_ = ""
-                            inn_ = ""
-                            сompany_ = ""
-                            product_ = ""
-                            address__ = (
-                                False  # Флаг для обозначения начала сбора адреса
-                            )
-
-                            for line in page_content:
-                                if re.search(r"^ИНН:", line):
-                                    inn_ = line.replace("ИНН: ", "").replace(".", "")
-                                    if inn_[:-1] in dict_.keys():
-                                        сompany_ = dict_[inn_[:-1]]
-                                    else:
-                                        name_company = find_INN(
-                                            "party", inn_[:-1], API_KEY
-                                        )["suggestions"][0]["value"]
-                                        dict_[inn_[:-1]] = name_company
-                                        сompany_ = dict_[inn_[:-1]]
-                                if re.search(r"^ФИО:", line):
-                                    name_ = line.replace("ФИО: ", "").replace(".", "")
-                                if re.search(r"^Телефон:", line):
-                                    if phone_ == "":
-                                        phone_ = line.replace("Телефон: ", "")
-                                if address__:
-                                    address_ = (
-                                        address_
-                                        + " "
-                                        + line.replace("Адрес: ", "")
-                                        .replace(" ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
-                                        .replace("ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
-                                    )
-                                    if "ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ" in line:
-                                        address__ = False
-                                if re.search(r"^Адрес:", line) or re.search(
-                                    r"^ПВЗ:", line
-                                ):
-                                    if not "ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ" in line:
-                                        address__ = True
-                                    address_ = (
-                                        line.replace("Адрес: ", "")
-                                        .replace(" ПВЗ: ", "")
-                                        .replace("ПВЗ: ", "")
-                                        .replace(" ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
-                                        .replace("ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
-                                    )
-                                if "Арт." in line:
-                                    info_ = line.split(" ")
-                                    if len(info_) > 2:
-                                        if len(info_[2]) > 1:
-                                            product_ = filter_info(info_)
-
-                                        else:
-                                            info_2 = (
-                                                line.replace(")", "__")
-                                                .replace("(", "__")
-                                                .split("__")
-                                            )
-                                            product_ = filter_info(info_2)
-
-                            result_entry = {
-                                "ФИО": name_.strip(),
-                                "Телефон": phone_.strip(),
-                                "Адрес": address_.strip(),
-                                "Продукт": product_.strip(),
-                                "ИНН": inn_.strip(),
-                                "Компания": сompany_.strip(),
-                            }
-
-                            results.append(result_entry)
-                    except Exception as e:
-                        print(f"Ошибка при чтении PDF-файла: {file_name}")
-                        traceback.print_exc()
-
-        # Преобразование результатов в формат JSON
-        # json_results = json.dumps(results, ensure_ascii=False, indent=4)
-        return results
-
-    except zipfile.BadZipFile:
-        print("Ошибка: Неверный zip-файл.")
-        traceback.print_exc()
-    except Exception as e:
-        print(f"Ошибка: {str(e)}")
-        traceback.print_exc()
-
-
-def process_PDF_files_rar(downloaded_rar_file):
-    pprint("process_PDF_files_rar")
-    API_KEY = "e847ba51dfe5006957aca33cbd3e158f234b2bfe"
-    try:
-        with rarfile.RarFile(io.BytesIO(downloaded_rar_file), "r") as rar_ref:
-            results = []  # Здесь будем хранить результаты обработки
-            dict_ = {}
-            pprint(rar_ref)
-            for file_name in rar_ref.namelist():
-                if file_name.lower().endswith(".pdf"):
-                    pdf_content = rar_ref.read(file_name)
-                    pdf_file = io.BytesIO(pdf_content)
-                    try:
-                        pdf_reader = PyPDF2.PdfReader(pdf_file)
-                        for page_num in range(len(pdf_reader.pages)):
-                            page = pdf_reader.pages[page_num]
-                            page_content = page.extract_text()
-                            page_content = page_content.split("\n")
-                            name_ = ""
-                            phone_ = ""
-                            address_ = ""
-                            inn_ = ""
-                            сompany_ = ""
-                            product_ = ""
-                            address__ = (
-                                False  # Флаг для обозначения начала сбора адреса
-                            )
-
-                            for line in page_content:
-                                if re.search(r"^ИНН:", line):
-                                    inn_ = line.replace("ИНН: ", "").replace(".", "")
-                                    if inn_[:-1] in dict_.keys():
-                                        сompany_ = dict_[inn_[:-1]]
-                                    else:
-                                        name_company = find_INN(
-                                            "party", inn_[:-1], API_KEY
-                                        )["suggestions"][0]["value"]
-                                        dict_[inn_[:-1]] = name_company
-                                        сompany_ = dict_[inn_[:-1]]
-                                if re.search(r"^ФИО:", line):
-                                    name_ = line.replace("ФИО: ", "").replace(".", "")
-                                if re.search(r"^Телефон:", line):
-                                    if phone_ == "":
-                                        phone_ = line.replace("Телефон: ", "")
-                                if address__:
-                                    address_ = (
-                                        address_
-                                        + " "
-                                        + line.replace("Адрес: ", "")
-                                        .replace(" ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
-                                        .replace("ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
-                                    )
-                                    if "ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ" in line:
-                                        address__ = False
-                                if re.search(r"^Адрес:", line) or re.search(
-                                    r"^ПВЗ:", line
-                                ):
-                                    if not "ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ" in line:
-                                        address__ = True
-                                    address_ = (
-                                        line.replace("Адрес: ", "")
-                                        .replace(" ПВЗ: ", "")
-                                        .replace("ПВЗ: ", "")
-                                        .replace(" ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
-                                        .replace("ИНФОРМАЦИЯ ОБ ОТПРАВЛЕНИИ", "")
-                                    )
-                                if "Арт." in line:
-                                    info_ = line.split(" ")
-                                    if len(info_) > 2:
-                                        if len(info_[2]) > 1:
-
-                                            product_ = filter_info(info_)
-
-                                        else:
-                                            info_2 = (
-                                                line.replace(")", "__")
-                                                .replace("(", "__")
-                                                .split("__")
-                                            )
-
-                                            product_ = filter_info(info_2)
-
-                            result_entry = {
-                                "ФИО": name_.strip(),
-                                "Телефон": phone_.strip(),
-                                "Адрес": address_.strip(),
-                                "Продукт": product_.strip(),
-                                "ИНН": inn_.strip(),
-                                "Компания": сompany_.strip(),
-                            }
-
-                            results.append(result_entry)
-                    except Exception as e:
-                        print(f"Ошибка при чтении PDF-файла: {file_name}")
-                        traceback.print_exc()
-
-        # Преобразование результатов в формат JSON
-        # json_results = json.dumps(results, ensure_ascii=False, indent=4)
-        return results
-
-    except rarfile.BadRarFile:
-        print("Ошибка: Неверный rar-файл.")
-        traceback.print_exc()
-    except Exception as e:
-        print(f"Ошибка: {str(e)}")
-        traceback.print_exc()
-
-
-def process_PDF_files_(downloaded_zip_file):
-    try:
-        with zipfile.ZipFile(io.BytesIO(downloaded_zip_file), "r") as zip_ref:
-            for file_name in zip_ref.namelist():
-                if file_name.lower().endswith(".pdf"):
-                    pdf_content = zip_ref.read(file_name)
-                    pdf_file = io.BytesIO(pdf_content)
-                    try:
-                        pdf_reader = PyPDF2.PdfReader(pdf_file)
-                        text = ""
-                        for page_num in range(len(pdf_reader.pages)):
-                            page = pdf_reader.pages[page_num]
-                            text += page.extract_text()
-                    except Exception as e:
-                        print(f"Ошибка при чтении PDF-файла: {file_name}")
-                        traceback.print_exc()
-        return text
-    except zipfile.BadZipFile:
-        print("Ошибка: Неверный zip-файл.")
-        traceback.print_exc()
-    except Exception as e:
-        print(f"Ошибка: {str(e)}")
-        traceback.print_exc()
+from bd.model import Message, Session, PDFFile
+from reports import reports, get_reports
+from util_s import (
+    format_message_list5,
+    format_message_list4,
+    xls_to_json_format_change,
+    process_PDF_files,
+    process_PDF_files_rar,
+)
 
 
 # стадии сесии
@@ -374,7 +46,9 @@ async def handle_message(bot: telebot.TeleBot, message: Message, session: Sessio
     except Exception as e:
         # print(ex)
         # raise ex
-        await bot.send_message(message.chat_id, f"Произошла ошибка {e}")
+        await bot.send_message(
+            message.chat_id, f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}"
+        )
         session.state = State.INIT
         next()
 
@@ -531,11 +205,6 @@ async def handle_reply_state(bot, message, session, next):
                 print("xls")
 
                 src_list = xls_to_json_format_change(downloaded_file)
-                # pprint(src_list)
-                # print("xls")
-
-                # src_list = xls_to_json_format_change(downloaded_file)
-                # pprint(src_list)
 
             elif mime_type == "application/zip":
                 src_list = process_PDF_files(downloaded_file)
@@ -575,23 +244,22 @@ async def handle_ready_state(bot, message, session, next):
                 await bot.send_message(message.chat_id, m, parse_mode="MarkdownV2")
                 for m in messages
             ]
-    if report.mime == "file":
-        messages = format_message_list4(result[0])
+    elif report.mime == "file_5":
+        messages = format_message_list5(result[0])
         try:
-            [
+            for m in messages:
                 await bot.send_message(message.chat_id, m, parse_mode="MarkdownV2")
-                for m in messages
-            ]
+                await asyncio.sleep(0.1)
+
         except Exception as e:
-            print(f"Error sending messages: {e}")
+            print(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
             await bot.send_message(message.chat_id, f"Error sending messages: {e}")
 
         try:
-            book_number = 2
+            book_number = 1
             for book in result[1]:
+                # await asyncio.sleep(0.5)
                 book_name = "book_" + str(book_number) + ".xlsx"
-                # book_he = result[1]
-                # pprint(book_he)
                 binary_book_he = io.BytesIO()
                 book.save(binary_book_he)
                 binary_book_he.seek(0)
@@ -600,19 +268,41 @@ async def handle_ready_state(bot, message, session, next):
                 )
                 await bot.send_document(message.chat_id, document=binary_book_he)
                 book_number += 1
-            # if len(result) > 3:
-            #     book_she = result[2]
-            #     binary_book_she = io.BytesIO()
-            #     book_she.save(binary_book_she)
-            #     binary_book_she.seek(0)
-            #     binary_book_she.name = (
-            #         "book_2.xlsx"  # Устанавливаем имя файла в объекте BytesIO
-            #     )
-            #     await bot.send_document(message.chat_id, document=binary_book_she)
+
         except Exception as e:
-            print(f"Error sending document: {e}")
+            print(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
+            await bot.send_message(
+                message.chat_id, f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}"
+            )
+    elif report.mime == "file":
+        messages = format_message_list4(result[0])
+        try:
+            [
+                await bot.send_message(message.chat_id, m, parse_mode="MarkdownV2")
+                for m in messages
+            ]
+
+        except Exception as e:
+            print(f"Error sending messages: {e}")
             await bot.send_message(message.chat_id, f"Error sending messages: {e}")
 
+        try:
+            book_number = 1
+            for book in result[1]:
+                book_name = "book_" + str(book_number) + ".xlsx"
+
+                binary_book_he = io.BytesIO()
+                book.save(binary_book_he)
+                binary_book_he.seek(0)
+                binary_book_he.name = (
+                    book_name  # Устанавливаем имя файла в объекте BytesIO
+                )
+                await bot.send_document(message.chat_id, document=binary_book_he)
+                book_number += 1
+
+        except Exception as e:
+            print(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
+            await bot.send_message(message.chat_id, f"Error sending messages: {e}")
     else:
         messages = format_message_list4(result)
         [

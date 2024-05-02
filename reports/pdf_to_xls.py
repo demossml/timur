@@ -34,11 +34,6 @@ def generate(session: Session):
 
     data_report = [book_he[1], book_she[1]]
 
-    # pprint(book)
-    # binary_stream = io.BytesIO()
-    # book[0].save(binary_stream)
-    # binary_stream.seek(0)
-
     for item in params["file"]:
         item["closeDate"] = utcnow().isoformat()
         Clients.objects(Телефон=item["Телефон"]).update(**item, upsert=True)

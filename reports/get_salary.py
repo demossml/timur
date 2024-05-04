@@ -54,7 +54,6 @@ def generate(session: Session):
             if operator not in crm_dict:
                 crm_dict[operator] = []
             crm_dict[operator].append(item.get("ID"))
-        # pprint(crm_dict)
 
         # Получаем ключи первого элемента списка Cdek
         keys = list(params["Cdek"][0].keys())
@@ -70,7 +69,6 @@ def generate(session: Session):
             if None not in (item.get(key1), item.get(key2))
         }
 
-        # pprint(cdek_date)
         # Создаем словари для сумм продаж, списка заказов и данных о заказах
         dict_sales = {}
         dict_order = {}
@@ -129,74 +127,119 @@ def generate(session: Session):
                 }
                 # Добавляем новый словарь new_item в исходный список provided_file_
                 provided_file.append(new_item)
-        pprint(oldest_salesman_data)
+        # pprint(oldest_salesman_data)
         # Инициализируем переменные для общей суммы и списка данных
         total_date = []
+        message_date = []
         total_sum = 0
 
         # Обходим данные из файла
         for item in provided_file:
             if item["Сотрудник"] != 0:
                 try:
-                    # pprint(item["Сотрудник"])
-
-                    # pprint(dict_sales.get(item["Сотрудник"], 0))
                     # Вычисляем общую сумму для каждого сотрудника
                     total = (
                         (
-                            Decimal(str(dict_sales.get(item["Сотрудник"], 0)))
-                            * Decimal(str(item["%"]))
+                            Decimal(
+                                str(dict_sales.get(item["Сотрудник"], 0))
+                            )  # Получаем продажи для текущего сотрудника из словаря dict_sales
+                            * Decimal(str(item["%"]))  # Процент от продаж
                         )
-                        + Decimal(str(item["Оклад"]))
-                        + Decimal(str(item["Отпускные"]))
-                        - Decimal(str(item["Офчасть"]))
-                        - Decimal(str(item["Долг"]))
-                        + Decimal(str(item["доп премия"]))
+                        + Decimal(str(item["Оклад"]))  # Оклад сотрудника
+                        + Decimal(str(item["Отпускные"]))  # Сумма отпускных
+                        - Decimal(str(item["Офчасть"]))  # Сумма официальной части
+                        - Decimal(str(item["Долг"]))  # Сумма долгов
+                        + Decimal(str(item["доп премия"]))  # Дополнительная премия
                     )
-                    total = total.quantize(Decimal("0.00"))
-                    total_sum += total
+                    total = total.quantize(Decimal("0.00"))  # Дополнительная премия
+
+                    total_sum += total  # Добавляем текущую сумму к общей сумме
 
                     # Формируем результаты для записи
                     result = {
-                        "Сотрудник": item["Сотрудник"],
+                        "Сотрудник": item["Сотрудник"],  # Идентификатор сотрудника
                         "Сумма": Decimal(dict_sales.get(item["Сотрудник"], 0)).quantize(
                             Decimal("0.00")
-                        ),
-                        "%": (Decimal(item["%"]) * 100).quantize(Decimal("0.00")),
+                        ),  # Сумма продаж для сотрудника из словаря dict_sales
+                        "%": (Decimal(item["%"]) * 100).quantize(
+                            Decimal("0.00")
+                        ),  # Процент от продаж
                         "Итог%": (
                             Decimal(dict_sales.get(item["Сотрудник"], 0))
-                            * Decimal(item["%"])
+                            * Decimal(
+                                item["%"]
+                            )  # Итоговая сумма по процентам от продаж
                         ).quantize(Decimal("0.00")),
-                        "Оклад": Decimal(item["Оклад"]).quantize(Decimal("0.00")),
+                        "Оклад": Decimal(item["Оклад"]).quantize(
+                            Decimal("0.00")
+                        ),  # Оклад сотрудника
                         "Отпускные": Decimal(item["Отпускные"]).quantize(
                             Decimal("0.00")
-                        ),
-                        "Офчасть": Decimal(item["Офчасть"]).quantize(Decimal("0.00")),
-                        "Долг": Decimal(item["Долг"]).quantize(Decimal("0.00")),
-                        "доп премия": Decimal(item["доп премия"]).quantize(
+                        ),  # Сумма отпускных
+                        "Офчасть": Decimal(item["Офчасть"]).quantize(
                             Decimal("0.00")
+                        ),  # Сумма официальной части
+                        "Долг": Decimal(item["Долг"]).quantize(
+                            Decimal("0.00")
+                        ),  # Сумма долга
+                        "доп премия": Decimal(item["доп премия"]).quantize(
+                            Decimal("0.00")  # Дополнительная премия
                         ),
-                        "Итог": total,
+                        "Итог": total,  # Общая сумма для сотрудника
                     }
 
-                    total_date.append(result)
-                    result_up = {}
-                    result_up.update(result)
+                    result_message = {
+                        "Сотрудник:": item["Сотрудник"],  # Идентификатор сотрудника
+                        "Сумма:": "{}₱".format(
+                            result["Сумма"]
+                        ),  # Сумма продаж для сотрудника из словаря dict_sales
+                        "Процент:": "{}%".format(result["%"]),  # Процент от продаж
+                        "Итог %:": "{}₱".format(
+                            result["Итог%"]
+                        ),  # Итоговая сумма по процентам от продаж
+                        "Оклад:": "{}₱".format(result["Оклад"]),  # Оклад сотрудника
+                        "Отпускные:": "{}₱".format(
+                            result["Отпускные"]
+                        ),  # Сумма отпускных
+                        "Офчасть:": "{}₱".format(
+                            result["Офчасть"]
+                        ),  # Сумма официальной части
+                        "Долг:": "{}₱".format(result["Долг"]),  # Сумма долга
+                        "Доп премия:": "{}₱".format(
+                            result["доп премия"]
+                        ),  # Дополнительная премия
+                        "Итог:": "{}₱".format(total),  # Общая сумма для сотрудника
+                    }
+
+                    total_date.append(
+                        result
+                    )  # Добавляем результаты в список total_date
+
+                    message_date.append(
+                        result_message
+                    )  # Добавляем результаты в список message_date
+
+                    result_up = {}  # Создаем пустой словарь result_up
+                    result_up.update(
+                        result
+                    )  # Обновляем словарь result_up данными из result
 
                     # Форматируем заказы для записи
                     format_order = {}
+                    format_order_messange = {}
                     if item["Сотрудник"] in dict_order:
                         for k, v in dict_order[item["Сотрудник"]].items():
-                            # pprint(type(k))
-                            # pprint(k)
-
-                            format_order.update({str(k): v})
+                            sum_order = Decimal(float(v)).quantize(Decimal("0.00"))
+                            # pprint(float(sum_order))
+                            format_order.update({str(k): sum_order})
+                            format_order_messange.update(
+                                {"№{}:".format(k): "{}₱".format(sum_order)}
+                            )
 
                     result.update(format_order)
+                    result_message.update(format_order_messange)
 
-                    # pprint(format_order)
-
-                    # Добавляем дополнительные данные для записи
+                    # Обновляем дополнительные данные в результате
                     result_up.update(
                         {
                             "closeDate": utcnow().shift(hours=3).isoformat(),
@@ -205,10 +248,16 @@ def generate(session: Session):
                         }
                     )
 
-                    # pprint(result_up)
-                    # Обновление документов в базе данных
+                    # Конвертация Decimal в float
+                    result_up_float = {
+                        k: float(v) if isinstance(v, Decimal) else v
+                        for k, v in result_up.items()
+                    }
+                    # pprint(result_up_float)
+
+                    # Обновление документов в MongoDB
                     Documents.objects(closeDate=result_up["closeDate"]).update(
-                        **result_up, upsert=True
+                        **result_up_float, upsert=True
                     )
                 except Exception as e:
                     print(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
@@ -238,14 +287,21 @@ def generate(session: Session):
                     Decimal("0.00")
                 )  # Считаем сумму значений ключа "Сумма" для всех элементов списка
 
+            # Конвертировать операнды в Decimal перед выполнением операции
+            # pprint(type(sum_items))
+            # pprint(sum_items * Decimal(str(oldest_salesman_data[pref]["%"])))
+
+            sum_items_decimal = Decimal(sum_items)
+
             total_ = Decimal(
-                (sum_items * oldest_salesman_data[pref]["%"])
+                (sum_items * Decimal(str(oldest_salesman_data[pref]["%"])))
                 + oldest_salesman_data[pref]["Оклад"]
                 + oldest_salesman_data[pref]["Отпускные"]
                 - oldest_salesman_data[pref]["Офчасть"]
                 - oldest_salesman_data[pref]["Долг"]
                 + oldest_salesman_data[pref]["доп премия"]
             ).quantize(Decimal("0.00"))
+
             resut = {
                 "%": Decimal(oldest_salesman_data[pref]["%"] * 100).quantize(
                     Decimal("0.00")
@@ -275,6 +331,49 @@ def generate(session: Session):
             list_.append(resut)  # Изменил способ создания словаря
             total_date.append(resut)
 
+            result_message = {
+                "Сотрудник:": pref,  # Идентификатор сотрудника
+                "Сумма:": "{}₱".format(
+                    Decimal(sum_items).quantize(Decimal("0.00"))
+                ),  # Сумма продаж для сотрудника из словаря dict_sales
+                "Процент:": "{}%".format(
+                    Decimal(oldest_salesman_data[pref]["%"] * 100).quantize(
+                        Decimal("0.00")
+                    )
+                ),  # Процент от продаж
+                "Итог %:": "{}₱".format(
+                    Decimal(sum_items * oldest_salesman_data[pref]["Итог%"]).quantize(
+                        Decimal("0.00")
+                    )
+                ),
+                "Оклад:": "{}₱".format(
+                    Decimal(oldest_salesman_data[pref]["Оклад"]).quantize(
+                        Decimal("0.00")
+                    )
+                ),  # Оклад сотрудника
+                "Отпускные:": "{}₱".format(
+                    Decimal(oldest_salesman_data[pref]["Отпускные"]).quantize(
+                        Decimal("0.00")
+                    )
+                ),  # Сумма отпускных
+                "Офчасть:": "{}₱".format(
+                    Decimal(oldest_salesman_data[pref]["Офчасть"]).quantize(
+                        Decimal("0.00")
+                    )
+                ),  # Сумма официальной части
+                "Долг:": "{}₱".format(
+                    Decimal(oldest_salesman_data[pref]["доп премия"]).quantize(
+                        Decimal("0.00")
+                    )
+                ),  # Сумма долга
+                "Доп премия:": "{}₱".format(
+                    Decimal(oldest_salesman_data[pref]["доп премия"]).quantize(
+                        Decimal("0.00")
+                    )
+                ),
+                "Итог:": "{}₱".format(total_),  # Общая сумма для сотрудника
+            }
+            message_date.append(result_message)
         # pprint(prefix_dict)
 
         # Форматируем данные для экспорта в Excel и добавляем в список книг
@@ -282,7 +381,7 @@ def generate(session: Session):
         for k, v in prefix_dict.items():
             if len(v) > 0:
                 books.append(json_to_xls_format_change_(v))
-        total_date.append(
+        message_date.append(
             {
                 "closeDate": utcnow().shift(hours=3).isoformat()[:10],
                 "Итог": total_sum,
@@ -291,6 +390,6 @@ def generate(session: Session):
         # pprint(books)
 
         # Возвращаем данные и книги Excel
-        return total_date, books
+        return message_date, books
     except Exception as e:
         print(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")

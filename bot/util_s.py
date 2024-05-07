@@ -294,6 +294,8 @@ def process_PDF_files(downloaded_zip_file):
                                 if re.search(r"^Телефон:", line):
                                     if phone_ == "":
                                         phone_ = line.replace("Телефон: ", "")
+                                        if phone_[0] == '7':
+                                            phone_ = '8' + phone_[1:]
                                 if address__:
                                     address_ = (
                                         address_
@@ -400,6 +402,8 @@ def process_PDF_files_rar(downloaded_rar_file):
                                 if re.search(r"^Телефон:", line):
                                     if phone_ == "":
                                         phone_ = line.replace("Телефон: ", "")
+                                        if phone_[0] == '7':
+                                            phone_ = '8' + phone_[1:]
                                 if address__:
                                     address_ = (
                                         address_

@@ -7,7 +7,9 @@ from openpyxl import load_workbook, Workbook
 from openpyxl.utils import get_column_letter, get_column_letter
 import sys  # Импортируем модуль sys для получения информации о текущем исключении
 from decimal import Decimal
+import logging
 
+logger = logging.getLogger(__name__)
 
 name = "🤑🤑🤑 Зарплата ➡️".upper()
 desc = "Загружает данне из xls в базу"
@@ -42,9 +44,12 @@ def get_inputs(session: Session):
 
 def generate(session: Session):
     try:
+        logging.info("Начало генерации данных")
+
         # Получаем параметры сессии
         params = session.params["inputs"]["0"]
-        # pprint(params)
+
+        logging.debug(f"Параметры сессии: {params}")
         # Создаем словарь для данных CRM
         crm_dict = {}
 
@@ -54,6 +59,8 @@ def generate(session: Session):
             if operator not in crm_dict:
                 crm_dict[operator] = []
             crm_dict[operator].append(item.get("ID"))
+
+        logging.debug(f"CRM данные: {crm_dict}")
 
         # Получаем ключи первого элемента списка Cdek
         keys = list(params["Cdek"][0].keys())
@@ -68,6 +75,8 @@ def generate(session: Session):
             for item in params["Cdek"]
             if None not in (item.get(key1), item.get(key2))
         }
+
+        logging.debug(f"Cdek данные: {cdek_date}")
 
         # Создаем словари для сумм продаж, списка заказов и данных о заказах
         dict_sales = {}
@@ -94,6 +103,9 @@ def generate(session: Session):
             dict_order.update({user: order_})
             dict_order_list_.update({user: order_list_})
 
+        logging.debug(f"Словарь продаж: {dict_sales}")
+        logging.debug(f"Словарь заказов: {dict_order}")
+
         # Извлекаем данные о файлах из параметров сессии ProvidedFile
         provided_file_ = params["ProvidedFile"]
 
@@ -102,6 +114,8 @@ def generate(session: Session):
         oldest_salesman_data = {}
 
         preoldest_salesman_list = ["POD", "SKP", "UDL", "M31"]
+
+        # pprint(provided_file_)
 
         # Заменяем значения None на 0 в каждом словаре
         # Итерируемся по элементам списка provided_file_
@@ -127,7 +141,10 @@ def generate(session: Session):
                 }
                 # Добавляем новый словарь new_item в исходный список provided_file_
                 provided_file.append(new_item)
-        # pprint(oldest_salesman_data)
+
+        logging.debug(f"Файл данных: {provided_file}")
+        logging.debug(f"Данные старейших сотрудников: {oldest_salesman_data}")
+
         # Инициализируем переменные для общей суммы и списка данных
         total_date = []
         message_date = []
@@ -260,13 +277,15 @@ def generate(session: Session):
                         **result_up_float, upsert=True
                     )
                 except Exception as e:
-                    print(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
+                    logging.error(
+                        f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}"
+                    )
 
         prefix = ["POD", "SKP", "UDL", "M31"]
 
         # Создаем словарь, где ключи - префиксы, значения - список элементов
         prefix_dict: dict = {p: [] for p in prefix}
-
+        # pprint(total_date)
         # Заполняем префиксный словарь
         for item in total_date:
             for p in prefix:
@@ -292,40 +311,43 @@ def generate(session: Session):
             # pprint(sum_items * Decimal(str(oldest_salesman_data[pref]["%"])))
 
             sum_items_decimal = Decimal(sum_items)
-
+            # pprint(oldest_salesman_data.get(pref, {}).get("%", 0))
             total_ = Decimal(
-                (sum_items * Decimal(str(oldest_salesman_data[pref]["%"])))
-                + oldest_salesman_data[pref]["Оклад"]
-                + oldest_salesman_data[pref]["Отпускные"]
-                - oldest_salesman_data[pref]["Офчасть"]
-                - oldest_salesman_data[pref]["Долг"]
-                + oldest_salesman_data[pref]["доп премия"]
+                (
+                    sum_items
+                    * Decimal(str(oldest_salesman_data.get(pref, {}).get("%", 0)))
+                )
+                + oldest_salesman_data.get(pref, {}).get("Оклад", 0)
+                + oldest_salesman_data.get(pref, {}).get("Отпускные", 0)
+                - oldest_salesman_data.get(pref, {}).get("Офчасть", 0)
+                - oldest_salesman_data.get(pref, {}).get("Долг", 0)
+                + oldest_salesman_data.get(pref, {}).get("доп премия", 0)
             ).quantize(Decimal("0.00"))
 
             resut = {
-                "%": Decimal(oldest_salesman_data[pref]["%"] * 100).quantize(
-                    Decimal("0.00")
-                ),
-                "Долг": Decimal(oldest_salesman_data[pref]["Долг"]).quantize(
-                    Decimal("0.00")
-                ),
+                "%": Decimal(
+                    oldest_salesman_data.get(pref, {}).get("%", 0) * 100
+                ).quantize(Decimal("0.00")),
+                "Долг": Decimal(
+                    oldest_salesman_data.get(pref, {}).get("Долг", 0)
+                ).quantize(Decimal("0.00")),
                 "Итог": total_,
                 "Итог%": Decimal(
-                    sum_items * oldest_salesman_data[pref]["Итог%"]
+                    sum_items * oldest_salesman_data.get(pref, {}).get("Итог%", 0)
                 ).quantize(Decimal("0.00")),
-                "Оклад": Decimal(oldest_salesman_data[pref]["Оклад"]).quantize(
-                    Decimal("0.00")
-                ),
-                "Отпускные": Decimal(oldest_salesman_data[pref]["Отпускные"]).quantize(
-                    Decimal("0.00")
-                ),
-                "Офчасть": Decimal(oldest_salesman_data[pref]["Офчасть"]).quantize(
-                    Decimal("0.00")
-                ),
+                "Оклад": Decimal(
+                    oldest_salesman_data.get(pref, {}).get("Оклад", 0)
+                ).quantize(Decimal("0.00")),
+                "Отпускные": Decimal(
+                    oldest_salesman_data.get(pref, {}).get("Отпускные", 0)
+                ).quantize(Decimal("0.00")),
+                "Офчасть": Decimal(
+                    oldest_salesman_data.get(pref, {}).get("Офчасть", 0)
+                ).quantize(Decimal("0.00")),
                 "Сотрудник": pref,
                 "Сумма": Decimal(sum_items).quantize(Decimal("0.00")),
                 "доп премия": Decimal(
-                    oldest_salesman_data[pref]["доп премия"]
+                    oldest_salesman_data.get(pref, {}).get("доп премия", 0)
                 ).quantize(Decimal("0.00")),
             }
             list_.append(resut)  # Изменил способ создания словаря
@@ -337,39 +359,39 @@ def generate(session: Session):
                     Decimal(sum_items).quantize(Decimal("0.00"))
                 ),  # Сумма продаж для сотрудника из словаря dict_sales
                 "Процент:": "{}%".format(
-                    Decimal(oldest_salesman_data[pref]["%"] * 100).quantize(
-                        Decimal("0.00")
-                    )
+                    Decimal(
+                        oldest_salesman_data.get(pref, {}).get("%", 0) * 100
+                    ).quantize(Decimal("0.00"))
                 ),  # Процент от продаж
                 "Итог %:": "{}₱".format(
-                    Decimal(sum_items * oldest_salesman_data[pref]["Итог%"]).quantize(
-                        Decimal("0.00")
-                    )
+                    Decimal(
+                        sum_items * oldest_salesman_data.get(pref, {}).get("Итог%", 0)
+                    ).quantize(Decimal("0.00"))
                 ),
                 "Оклад:": "{}₱".format(
-                    Decimal(oldest_salesman_data[pref]["Оклад"]).quantize(
-                        Decimal("0.00")
-                    )
+                    Decimal(
+                        oldest_salesman_data.get(pref, {}).get("Оклад", 0)
+                    ).quantize(Decimal("0.00"))
                 ),  # Оклад сотрудника
                 "Отпускные:": "{}₱".format(
-                    Decimal(oldest_salesman_data[pref]["Отпускные"]).quantize(
-                        Decimal("0.00")
-                    )
+                    Decimal(
+                        oldest_salesman_data.get(pref, {}).get("Отпускные", 0)
+                    ).quantize(Decimal("0.00"))
                 ),  # Сумма отпускных
                 "Офчасть:": "{}₱".format(
-                    Decimal(oldest_salesman_data[pref]["Офчасть"]).quantize(
-                        Decimal("0.00")
-                    )
+                    Decimal(
+                        oldest_salesman_data.get(pref, {}).get("Офчасть", 0)
+                    ).quantize(Decimal("0.00"))
                 ),  # Сумма официальной части
                 "Долг:": "{}₱".format(
-                    Decimal(oldest_salesman_data[pref]["доп премия"]).quantize(
-                        Decimal("0.00")
-                    )
+                    Decimal(
+                        oldest_salesman_data.get(pref, {}).get("доп премия", 0)
+                    ).quantize(Decimal("0.00"))
                 ),  # Сумма долга
                 "Доп премия:": "{}₱".format(
-                    Decimal(oldest_salesman_data[pref]["доп премия"]).quantize(
-                        Decimal("0.00")
-                    )
+                    Decimal(
+                        oldest_salesman_data.get(pref, {}).get("доп премия", 0)
+                    ).quantize(Decimal("0.00"))
                 ),
                 "Итог:": "{}₱".format(total_),  # Общая сумма для сотрудника
             }
@@ -387,9 +409,9 @@ def generate(session: Session):
                 "Итог": total_sum,
             }
         )
-        # pprint(books)
+        logging.info("Генерация данных завершена")
 
         # Возвращаем данные и книги Excel
         return message_date, books
     except Exception as e:
-        print(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
+        logging.error(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")

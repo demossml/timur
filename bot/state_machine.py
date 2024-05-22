@@ -23,6 +23,18 @@ from util_s import (
     process_PDF_files_rar,
 )
 
+import logging
+
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("bot.log"), logging.StreamHandler()],
+)
+
+logger = logging.getLogger(__name__)
+
 
 # стадии сесии
 class State(str, Enum):
@@ -40,12 +52,19 @@ async def handle_message(bot: telebot.TeleBot, message: Message, session: Sessio
         session.state = State.INIT
         session.room = "0"
         session.update(room=session.room, state=session.state)
+    if message.text == "/log":
+        text_file_path = "bot.log"
+        with open(text_file_path, "rb") as text_file:
+            await bot.send_document(490899906, document=text_file)
+
     next = lambda: handle_message(bot, message, session)
     try:
         await states[session.state](bot, message, session, next)
     except Exception as e:
         # print(ex)
         # raise ex
+        logger.exception("Error handling message")
+        logger.error(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
         await bot.send_message(
             message.chat_id, f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}"
         )
@@ -68,6 +87,7 @@ async def handle_init_state(
 
     session.state = State.MENU
     session.update(params=session.params, state=session.state)
+    logger.debug(f"Handled init state for chat {message.chat_id}")
 
     # session.save()
 
@@ -78,7 +98,7 @@ async def handle_menu_state(
     session.params["report"] = message.text
     session.state = State.INPUT
     session.update(state=session.state, params=session.params)
-    # session.save()
+    logger.debug(f"Handled init state for chat {message.chat_id}")
     await next()
 
 
@@ -129,7 +149,8 @@ async def handle_input_state(bot, message, session, next):
                 await bot.send_message(message.chat_id, input.desc, reply_markup=markup)
             session.state = State.REPLY
             session.update(state=session.state)
-            # session.save()
+
+            logger.debug(f"Handled init state for chat {message.chat_id}")
 
             return
 
@@ -215,12 +236,13 @@ async def handle_reply_state(bot, message, session, next):
             session.params["inputs"][str(room)][input_name] = src_list
 
         except Exception as e:
-            print(f"Произошла ошибка при обработке файла: {e}")
+            logger.exception("Error sending messages")
+            logger.error(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
             await bot.send_message(message.chat_id, f"Error sending messages: {e}")
 
     session.state = State.INPUT
     session.update(params=session.params, state=session.state)
-    # session.save()
+    logger.debug(f"Handled init state for chat {message.chat_id}")
     await next()
 
 
@@ -252,7 +274,8 @@ async def handle_ready_state(bot, message, session, next):
                 await asyncio.sleep(0.1)
 
         except Exception as e:
-            print(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
+            logger.exception("Error sending messages")
+            logger.error(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
             await bot.send_message(message.chat_id, f"Error sending messages: {e}")
 
         try:
@@ -270,7 +293,8 @@ async def handle_ready_state(bot, message, session, next):
                 book_number += 1
 
         except Exception as e:
-            print(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
+            logger.exception("Error sending messages")
+            logger.error(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
             await bot.send_message(
                 message.chat_id, f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}"
             )
@@ -283,7 +307,8 @@ async def handle_ready_state(bot, message, session, next):
             ]
 
         except Exception as e:
-            print(f"Error sending messages: {e}")
+            logger.exception("Error sending messages")
+            logger.error(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
             await bot.send_message(message.chat_id, f"Error sending messages: {e}")
 
         try:
@@ -301,7 +326,8 @@ async def handle_ready_state(bot, message, session, next):
                 book_number += 1
 
         except Exception as e:
-            print(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
+            logger.exception("Error sending messages")
+            logger.error(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
             await bot.send_message(message.chat_id, f"Error sending messages: {e}")
     else:
         messages = format_message_list4(result)
@@ -316,6 +342,8 @@ async def handle_ready_state(bot, message, session, next):
     await bot.delete_message(message.chat_id, message.message_id)
     await bot.send_message(message.chat_id, "Привет", reply_markup=markup)
     session.update(state=session.state)
+    logger.debug(f"Handled ready state for chat {message.chat_id}")
+
     # session.save()
     # await next()
 

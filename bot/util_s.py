@@ -28,12 +28,17 @@ import io
 # import psutil  # Для мониторинга загрузки процессора
 from pprint import pprint
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def format_message_list2(obj):
     text = ""  # Создаем пустую строку, в которую будем добавлять текст
     messages = []  # Создаем пустой список для хранения сообщений
 
     if len(obj) > 0:  # Проверяем, что входной объект не пуст
+        logger.debug("Processing non-empty object")
         for k, v in obj.items():  # Проходим по ключам и значениям в объекте
             key = str(k)  # Преобразуем ключ в строку
             val = str(v)  # Преобразуем значение в строку
@@ -69,6 +74,10 @@ def format_message_list2(obj):
                 index:
             ].strip()  # Удаляем обработанную часть из текста и убираем пробелы
 
+        logger.debug("Finished formatting messages")
+    else:
+        logger.debug("Input object is empty")
+
     return messages  # Возвращаем список сообщений
 
 
@@ -77,6 +86,7 @@ def format_message_list4(obj):
     messages = []  # Создаем пустой список для хранения отформатированных сообщений.
 
     if len(obj) > 0:  # Проверяем, есть ли объекты в списке.
+        logger.debug("Processing non-empty object")
         for i in obj:  # Проходим по каждому объекту в списке.
             for k, v in i.items():  # Проходим по каждой паре ключ-значение в объекте.
                 key = str(k)  # Преобразуем ключ в строку.
@@ -122,7 +132,11 @@ def format_message_list4(obj):
             )  # Добавляем часть текста в список сообщений,
             text = text[index:].strip()  # и удаляем ее из исходного текста.
 
-        return messages  # Возвращаем список отформатированных сообщений.
+        logger.debug("Finished formatting messages")
+    else:
+        logger.debug("Input object is empty")
+
+    return messages  # Возвращаем список отформатированных сообщений.
 
 
 def format_message_list5(obj):
@@ -130,6 +144,7 @@ def format_message_list5(obj):
     messages = []  # Создаем пустой список для хранения отформатированных сообщений.
 
     if len(obj) > 0:  # Проверяем, есть ли объекты в списке.
+        logger.debug("Processing non-empty object")
         for i in obj:  # Проходим по каждому объекту в списке.
             for k, v in i.items():  # Проходим по каждой паре ключ-значение в объекте.
                 key = str(k)  # Преобразуем ключ в строку.
@@ -174,12 +189,17 @@ def format_message_list5(obj):
                 "```\n" + part + "\n```"
             )  # Добавляем часть текста в список сообщений,
             text = text[index:].strip()  # и удаляем ее из исходного текста.
+        logger.debug("Finished formatting messages")
+    else:
+        logger.debug("Input object is empty")
 
-        return messages  # Возвращаем список отформатированных сообщений.
+    return messages  # Возвращаем список отформатированных сообщений.
 
 
 def xls_to_json_format_change(downloaded_file):
     try:
+        logger.info("Начало преобразования XLS в JSON")
+
         # Создаем буферизированный объект для чтения из загруженного файла
         file_buffer = io.BytesIO(downloaded_file)
 
@@ -211,12 +231,14 @@ def xls_to_json_format_change(downloaded_file):
                     ].value
             if len(my_dict) > 0:  # Убеждаемся, что словарь не пустой
                 my_list.append(my_dict)  # Добавляем словарь в список
+        logger.info("Преобразование завершено")
         return my_list  # Возвращаем список словарей
     except openpyxl.utils.exceptions.InvalidFileException:
-        print("Загруженный файл не является действительным файлом Excel.")
+        logger.error("Загруженный файл не является действительным файлом Excel.")
         return None
     except Exception as e:
-        print(f"Произошла ошибка: {e}")
+        logger.error(f"Произошла ошибка: {e}")
+        traceback.print_exc()
         return None
 
 
@@ -233,10 +255,12 @@ def filter_info(info_):
             and item not in ["БЕЗ", "НДС"]
         ]
     )
+    logger.info("Фильтрация завершена")
     return filtered_str
 
 
 def find_INN(resource, query, API_KEY):
+    logger.info("Поиск ИНН по запросу")
     # Функция для поиска ИНН по запросу с использованием API Dadata
     BASE_URL = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/"
     url = BASE_URL + resource
@@ -249,12 +273,16 @@ def find_INN(resource, query, API_KEY):
     # Отправляем POST-запрос к API для поиска ИНН
     res = requests.post(url, data=json.dumps(data), headers=headers)
     # Возвращаем JSON-ответ
+    logger.info("Поиск ИНН завершен")
     return res.json()
 
 
 def process_PDF_files(downloaded_zip_file):
+    logger.info("Начало обработки PDF файлов")
+
     API_KEY = "e847ba51dfe5006957aca33cbd3e158f234b2bfe"
     try:
+        logger.debug("Начало обработки zip-файла с PDF файлами")
         with zipfile.ZipFile(io.BytesIO(downloaded_zip_file), "r") as zip_ref:
             results = []  # Здесь будем хранить результаты обработки
             dict_ = {}
@@ -294,8 +322,8 @@ def process_PDF_files(downloaded_zip_file):
                                 if re.search(r"^Телефон:", line):
                                     if phone_ == "":
                                         phone_ = line.replace("Телефон: ", "")
-                                        if phone_[0] == '7':
-                                            phone_ = '8' + phone_[1:]
+                                        if phone_[0] == "7":
+                                            phone_ = "8" + phone_[1:]
                                 if address__:
                                     address_ = (
                                         address_
@@ -343,29 +371,31 @@ def process_PDF_files(downloaded_zip_file):
 
                             results.append(result_entry)
                     except Exception as e:
-                        print(f"Ошибка при чтении PDF-файла: {file_name}")
+                        logger.error(f"Ошибка при чтении PDF-файла: {file_name}")
                         traceback.print_exc()
 
         # Преобразование результатов в формат JSON
         # json_results = json.dumps(results, ensure_ascii=False, indent=4)
+        logger.info("Обработка PDF файлов завершена")
+
         return results
 
     except zipfile.BadZipFile:
-        print("Ошибка: Неверный zip-файл.")
+        logger.error("Ошибка: Неверный zip-файл.")
         traceback.print_exc()
     except Exception as e:
-        print(f"Ошибка: {str(e)}")
+        logger.error(f"Ошибка: {str(e)}")
         traceback.print_exc()
 
 
 def process_PDF_files_rar(downloaded_rar_file):
-    pprint("process_PDF_files_rar")
+    logger.info("Начало обработки RAR файлов")
     API_KEY = "e847ba51dfe5006957aca33cbd3e158f234b2bfe"
     try:
         with rarfile.RarFile(io.BytesIO(downloaded_rar_file), "r") as rar_ref:
             results = []  # Здесь будем хранить результаты обработки
             dict_ = {}
-            pprint(rar_ref)
+            logger.debug("Начало обработки rar-файла с PDF файлами")
             for file_name in rar_ref.namelist():
                 if file_name.lower().endswith(".pdf"):
                     pdf_content = rar_ref.read(file_name)
@@ -402,8 +432,8 @@ def process_PDF_files_rar(downloaded_rar_file):
                                 if re.search(r"^Телефон:", line):
                                     if phone_ == "":
                                         phone_ = line.replace("Телефон: ", "")
-                                        if phone_[0] == '7':
-                                            phone_ = '8' + phone_[1:]
+                                        if phone_[0] == "7":
+                                            phone_ = "8" + phone_[1:]
                                 if address__:
                                     address_ = (
                                         address_
@@ -453,22 +483,24 @@ def process_PDF_files_rar(downloaded_rar_file):
 
                             results.append(result_entry)
                     except Exception as e:
-                        print(f"Ошибка при чтении PDF-файла: {file_name}")
+                        logger.error(f"Ошибка при чтении PDF-файла: {file_name}")
                         traceback.print_exc()
 
         # Преобразование результатов в формат JSON
         # json_results = json.dumps(results, ensure_ascii=False, indent=4)
+        logger.info("Обработка RAR файлов завершена")
         return results
 
     except rarfile.BadRarFile:
-        print("Ошибка: Неверный rar-файл.")
+        logger.error("Ошибка: Неверный rar-файл.")
         traceback.print_exc()
     except Exception as e:
-        print(f"Ошибка: {str(e)}")
+        logger.error(f"Ошибка: {str(e)}")
         traceback.print_exc()
 
 
 def process_PDF_files_(downloaded_zip_file):
+    logger.info("Начало обработки ZIP файлов")
     try:
         with zipfile.ZipFile(io.BytesIO(downloaded_zip_file), "r") as zip_ref:
             for file_name in zip_ref.namelist():
@@ -482,12 +514,13 @@ def process_PDF_files_(downloaded_zip_file):
                             page = pdf_reader.pages[page_num]
                             text += page.extract_text()
                     except Exception as e:
-                        print(f"Ошибка при чтении PDF-файла: {file_name}")
+                        logger.error(f"Ошибка при чтении PDF-файла: {file_name}")
                         traceback.print_exc()
+        logger.info("Обработка ZIP файлов завершена")
         return text
     except zipfile.BadZipFile:
-        print("Ошибка: Неверный zip-файл.")
+        logger.error("Ошибка: Неверный zip-файл.")
         traceback.print_exc()
     except Exception as e:
-        print(f"Ошибка: {str(e)}")
+        logger.error(f"Ошибка: {str(e)}")
         traceback.print_exc()

@@ -3,6 +3,10 @@ from arrow import utcnow, get
 from bd.model import Session, Clients
 from pprint import pprint
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 name = "📦 Get Order ➡️"
 desc = "Загружает данне из xls в базу"
@@ -25,6 +29,7 @@ def generate(session: Session):
     order_ = int(params["order"])
     # pprint(type(order_))
     try:
+        logger.info("Начало генерации отчета")
 
         document = Documents.objects(order_list__in=[order_])
         report_date = []
@@ -46,7 +51,8 @@ def generate(session: Session):
                 }
             )
             report_date.append(dic_doc)
-        pprint(report_date)
+        logger.info("Генерация отчета завершена")
+        logger.debug(report_date)
+        return report_date
     except Exception as e:
-        print(f"Error sending messages: {e}")
-    return report_date
+        logger.error(f"Ошибка при генерации отчета: {e}")

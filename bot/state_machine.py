@@ -21,6 +21,8 @@ from util_s import (
     xls_to_json_format_change,
     process_PDF_files,
     process_PDF_files_rar,
+    process_pdf_files,
+    process_pdf_file_no_zip
 )
 
 import logging
@@ -228,7 +230,10 @@ async def handle_reply_state(bot, message, session, next):
                 src_list = xls_to_json_format_change(downloaded_file)
 
             elif mime_type == "application/zip":
-                src_list = process_PDF_files(downloaded_file)
+                src_list = process_pdf_file(downloaded_file)
+
+            elif mime_type == "application/pdf":
+                src_list = process_pdf_file_no_zip(downloaded_file)
 
             else:
                 src_list = process_PDF_files_rar(downloaded_file)
@@ -329,6 +334,37 @@ async def handle_ready_state(bot, message, session, next):
             logger.exception("Error sending messages")
             logger.error(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
             await bot.send_message(message.chat_id, f"Error sending messages: {e}")
+
+    elif report.mime == "file_7":
+        messages = format_message_list4(result[0])
+        try:
+            [
+                await bot.send_message(message.chat_id, m, parse_mode="MarkdownV2")
+                for m in messages
+            ]
+
+        except Exception as e:
+            logger.exception("Error sending messages")
+            logger.error(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
+            await bot.send_message(message.chat_id, f"Error sending messages: {e}")
+
+        try:
+            book = result[1]
+            book_name = "book.xlsx"
+
+            binary_book_he = io.BytesIO()
+            book.save(binary_book_he)
+            binary_book_he.seek(0)
+            binary_book_he.name = (
+                book_name  # Устанавливаем имя файла в объекте BytesIO
+            )
+            await bot.send_document(message.chat_id, document=binary_book_he)
+
+        except Exception as e:
+            logger.exception("Error sending messages")
+            logger.error(f"Ошибка: {e} на строке {sys.exc_info()[-1].tb_lineno}")
+            await bot.send_message(message.chat_id, f"Error sending messages: {e}")
+
     else:
         messages = format_message_list4(result)
         [

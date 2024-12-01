@@ -1,0 +1,107 @@
+2024-11-30 22:54:26,995 - __main__ - INFO - Запуск бота
+2024-11-30 22:54:30,860 - TeleBot - ERROR - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2024-11-30 22:56:37,048 - __main__ - INFO - Запуск бота
+2024-11-30 22:56:47,035 - __main__ - INFO - Начало обработки сообщения
+2024-11-30 22:56:47,355 - __main__ - INFO - Сообщение обработано успешно
+2024-11-30 22:56:50,676 - __main__ - INFO - Начало обработки сообщения
+2024-11-30 22:56:50,795 - __main__ - INFO - Сообщение обработано успешно
+2024-11-30 22:57:45,099 - __main__ - INFO - Запуск бота
+2024-11-30 22:58:19,296 - __main__ - INFO - Начало обработки сообщения
+2024-11-30 22:58:52,172 - util_s - INFO - Начало обработки RAR файлов
+2024-11-30 22:58:52,175 - util_s - ERROR - Ошибка: Not a RAR file
+2024-11-30 22:58:52,180 - state_machine - ERROR - Error handling message
+Traceback (most recent call last):
+  File "/Users/dmitrijsuvalov/Documents/timur/bot/state_machine.py", line 63, in handle_message
+    await states[session.state](bot, message, session, next)
+  File "/Users/dmitrijsuvalov/Documents/timur/bot/state_machine.py", line 252, in handle_ready_state
+    result = report.generate(session)
+  File "/Users/dmitrijsuvalov/Documents/timur/reports/pdf_to_xls.py", line 27, in generate
+    data_list = he_she(params["file"])
+  File "/Users/dmitrijsuvalov/Documents/timur/reports/util.py", line 274, in he_she
+    for item in data_list:
+TypeError: 'NoneType' object is not iterable
+2024-11-30 22:58:52,181 - state_machine - ERROR - Ошибка: 'NoneType' object is not iterable на строке 63
+2024-11-30 22:58:52,311 - __main__ - INFO - Сообщение обработано успешно
+2024-11-30 23:02:53,462 - __main__ - INFO - Запуск бота
+2024-11-30 23:02:57,757 - __main__ - INFO - Начало обработки сообщения
+2024-11-30 23:02:58,094 - __main__ - INFO - Сообщение обработано успешно
+2024-11-30 23:03:08,569 - __main__ - INFO - Начало обработки сообщения
+2024-11-30 23:03:08,693 - __main__ - INFO - Сообщение обработано успешно
+2024-11-30 23:03:53,549 - __main__ - INFO - Начало обработки сообщения
+2024-11-30 23:04:20,294 - util_s - INFO - Начало обработки RAR файлов
+2024-11-30 23:04:20,298 - util_s - ERROR - Ошибка: Not a RAR file
+2024-11-30 23:04:20,305 - state_machine - ERROR - Error handling message
+Traceback (most recent call last):
+  File "/Users/dmitrijsuvalov/Documents/timur/bot/state_machine.py", line 64, in handle_message
+    await states[session.state](bot, message, session, next)
+  File "/Users/dmitrijsuvalov/Documents/timur/bot/state_machine.py", line 256, in handle_ready_state
+    result = report.generate(session)
+  File "/Users/dmitrijsuvalov/Documents/timur/reports/pdf_to_xls.py", line 27, in generate
+    data_list = he_she(params["file"])
+  File "/Users/dmitrijsuvalov/Documents/timur/reports/util.py", line 274, in he_she
+    for item in data_list:
+TypeError: 'NoneType' object is not iterable
+2024-11-30 23:04:20,307 - state_machine - ERROR - Ошибка: 'NoneType' object is not iterable на строке 64
+2024-11-30 23:04:20,492 - __main__ - INFO - Сообщение обработано успешно
+2024-11-30 23:07:09,231 - __main__ - INFO - Запуск бота
+2024-11-30 23:12:36,271 - __main__ - INFO - Начало обработки сообщения
+2024-11-30 23:12:37,238 - __main__ - INFO - Сообщение обработано успешно
+2024-11-30 23:12:39,164 - __main__ - INFO - Начало обработки сообщения
+2024-11-30 23:12:39,482 - __main__ - INFO - Сообщение обработано успешно
+2024-11-30 23:13:05,122 - __main__ - INFO - Начало обработки сообщения
+2024-11-30 23:13:29,181 - util_s - INFO - Начало обработки PDF файла
+2024-11-30 23:15:07,559 - util_s - INFO - Обработка PDF файла завершена
+2024-11-30 23:15:07,702 - state_machine - ERROR - Error handling message
+Traceback (most recent call last):
+  File "/Users/dmitrijsuvalov/Documents/timur/bot/state_machine.py", line 64, in handle_message
+    await states[session.state](bot, message, session, next)
+  File "/Users/dmitrijsuvalov/Documents/timur/bot/state_machine.py", line 256, in handle_ready_state
+    result = report.generate(session)
+  File "/Users/dmitrijsuvalov/Documents/timur/reports/pdf_to_xls.py", line 27, in generate
+    data_list = he_she(params["file"])
+  File "/Users/dmitrijsuvalov/Documents/timur/reports/util.py", line 276, in he_she
+    if item["ФИО"][-1].upper() == "А":
+TypeError: list indices must be integers or slices, not str
+2024-11-30 23:15:07,703 - state_machine - ERROR - Ошибка: list indices must be integers or slices, not str на строке 64
+2024-11-30 23:15:08,272 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 03:05:24,938 - TeleBot - ERROR - Unknown error: TimeoutError
+2024-12-01 03:05:24,941 - TeleBot - ERROR - Unhandled exception (full traceback for debug level): Request timeout. Request: method=get url=getUpdates params=<aiohttp.formdata.FormData object at 0x41acb8040> files=None request_timeout=300
+2024-12-01 10:32:50,260 - __main__ - INFO - Запуск бота
+2024-12-01 10:33:22,123 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 10:33:22,831 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 10:33:25,161 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 10:33:25,333 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 10:33:48,314 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 10:34:01,305 - util_s - INFO - Начало обработки PDF файла
+2024-12-01 10:35:35,921 - util_s - INFO - Обработка PDF файла завершена
+2024-12-01 10:35:46,093 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 10:41:46,922 - __main__ - INFO - Запуск бота
+2024-12-01 10:43:31,081 - __main__ - INFO - Запуск бота
+2024-12-01 10:45:03,671 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 10:45:04,132 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 10:45:05,688 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 10:45:05,831 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 10:45:27,328 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 10:45:41,657 - util_s - INFO - Начало обработки PDF файла
+2024-12-01 10:47:17,063 - util_s - INFO - Обработка PDF файла завершена
+2024-12-01 10:47:26,918 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 10:54:42,737 - __main__ - INFO - Запуск бота
+2024-12-01 10:55:01,079 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 10:55:01,673 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 10:55:03,054 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 10:55:03,060 - state_machine - ERROR - Error handling message
+Traceback (most recent call last):
+  File "/Users/dmitrijsuvalov/Documents/timur/bot/state_machine.py", line 64, in handle_message
+    await states[session.state](bot, message, session, next)
+  File "/Users/dmitrijsuvalov/Documents/timur/bot/state_machine.py", line 117, in handle_input_state
+    if input.type == "SELECT":
+AttributeError: 'FileInput' object has no attribute 'type'
+2024-12-01 10:55:03,062 - state_machine - ERROR - Ошибка: 'FileInput' object has no attribute 'type' на строке 64
+2024-12-01 10:55:03,175 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 10:58:00,053 - __main__ - INFO - Запуск бота
+2024-12-01 10:58:19,707 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 10:58:20,029 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 10:58:21,340 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 10:58:21,475 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 10:58:29,506 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 10:58:29,693 - __main__ - INFO - Сообщение обработано успешно

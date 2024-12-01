@@ -8,6 +8,7 @@ from reports import get_order
 
 # from reports import upload_data
 
+from reports import pdf_to_xls_2
 from reports import pdf_to_xls
 from bd.model import Session
 
@@ -33,13 +34,14 @@ def get_reports(session: Session):
 
     else:
         return {
-            "pdf_to_xls": pdf_to_xls,
+            "pdf_to_xls_2": pdf_to_xls_2,
         }
 
 
 reports = {
     "download_data": download_data,
     "upload_data": upload_data_,
+    "pdf_to_xls_2": pdf_to_xls_2,
     "pdf_to_xls": pdf_to_xls,
     "info_bd": info_bd,
     "get_salary": get_salary,

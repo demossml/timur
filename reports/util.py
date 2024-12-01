@@ -469,8 +469,6 @@ def json_to_xls_format_change_(data_list: list):
         return None
 
 
-# Получает список славарей
-# Отдает xls
 def json_to_xls_format_change___(list: list):
     book = Workbook()
 
@@ -497,4 +495,13 @@ def json_to_xls_format_change___(list: list):
                 sheet[row][last_column].value = v
                 last_column += 1
         row += 1
+    return book
+
+def pdf_to_xls(data: list):
+    book = Workbook()
+    sheet = book.active
+
+    for row in data:
+        sheet.append(row)
+
     return book

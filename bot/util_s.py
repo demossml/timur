@@ -23,6 +23,7 @@ import re
 import time
 import rarfile
 import io
+import pdfplumber
 
 
 # import psutil  # Для мониторинга загрузки процессора
@@ -521,6 +522,100 @@ def process_PDF_files_(downloaded_zip_file):
     except zipfile.BadZipFile:
         logger.error("Ошибка: Неверный zip-файл.")
         traceback.print_exc()
+    except Exception as e:
+        logger.error(f"Ошибка: {str(e)}")
+        traceback.print_exc()
+def contains_br_code(row):
+    """
+    Проверяет, содержит ли первый элемент списка подстроку 'БР-'.
+
+    :param row: Список, представляющий строку таблицы.
+    :return: True, если первый элемент содержит 'БР-', иначе False.
+    """
+    return row and isinstance(row[0], str) and "БР-" in row[0]
+
+
+def process_pdf_files(downloaded_zip_file):
+    """
+    Обрабатывает PDF-файлы из zip-архива, извлекая строки с подстрокой 'БР-'.
+
+    :param downloaded_zip_file: Содержимое zip-архива в виде байтов.
+    :return: Список извлечённых данных.
+    """
+    logger.info("Начало обработки PDF файлов")
+
+    try:
+        logger.debug("Начало обработки zip-файла с PDF файлами")
+        with zipfile.ZipFile(io.BytesIO(downloaded_zip_file), "r") as zip_ref:
+            results = []  # Здесь будем хранить результаты обработки
+
+            for file_name in zip_ref.namelist():
+                if file_name.lower().endswith(".pdf"):
+                    logger.debug(f"Обработка файла: {file_name}")
+                    pdf_content = zip_ref.read(file_name)
+                    pdf_file = io.BytesIO(pdf_content)
+
+                    try:
+                        with pdfplumber.open(pdf_file) as pdf:
+                            for page_number, page in enumerate(pdf.pages, start=1):
+                                logger.debug(
+                                    f"Обработка страницы {page_number} файла {file_name}"
+                                )
+                                tables = page.extract_tables()
+
+                                for table in tables:
+                                    for row in table:
+                                        if contains_br_code(row):
+                                            results.append(
+                                                row
+                                            )  # Добавляем строку в результаты
+
+                    except Exception as e:
+                        logger.error(f"Ошибка при обработке PDF-файла: {file_name}")
+                        traceback.print_exc()
+
+        logger.info("Обработка PDF файлов завершена")
+        return results
+
+    except zipfile.BadZipFile:
+        logger.error("Ошибка: Неверный zip-файл.")
+        traceback.print_exc()
+    except Exception as e:
+        logger.error(f"Ошибка: {str(e)}")
+        traceback.print_exc()
+
+
+def process_pdf_file_no_zip(pdf_content):
+    """
+    Обрабатывает PDF-файл, извлекая строки с подстрокой 'БР-'.
+
+    :param pdf_content: Содержимое PDF-файла в виде байтов.
+    :return: Список извлечённых данных.
+    """
+    logger.info("Начало обработки PDF файла")
+
+    try:
+        results = []  # Список для сохранения извлечённых строк
+        pdf_file = io.BytesIO(pdf_content)
+
+        try:
+            with pdfplumber.open(pdf_file) as pdf:
+                for page_number, page in enumerate(pdf.pages, start=1):
+                    logger.debug(f"Обработка страницы {page_number}")
+                    tables = page.extract_tables()
+
+                    for table in tables:
+                        for row in table:
+                            if contains_br_code(row):
+                                results.append(row)  # Добавляем строку в результаты
+
+        except Exception as e:
+            logger.error("Ошибка при обработке PDF-файла")
+            traceback.print_exc()
+
+        logger.info("Обработка PDF файла завершена")
+        return results
+
     except Exception as e:
         logger.error(f"Ошибка: {str(e)}")
         traceback.print_exc()

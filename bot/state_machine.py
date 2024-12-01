@@ -100,7 +100,7 @@ async def handle_menu_state(
     session.params["report"] = message.text
     session.state = State.INPUT
     session.update(state=session.state, params=session.params)
-    logger.debug(f"Handled init state for chat {message.chat_id}")
+    logger.debug(f"Handled init sta bb     te for chat {message.chat_id}")
     await next()
 
 

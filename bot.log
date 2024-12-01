@@ -125,3 +125,21 @@ AttributeError: 'FileInput' object has no attribute 'type'
 2024-12-01 12:57:04,741 - __main__ - INFO - Сообщение обработано успешно
 2024-12-01 12:57:15,109 - __main__ - INFO - Начало обработки сообщения
 2024-12-01 12:57:15,241 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 14:32:10,786 - __main__ - INFO - Запуск бота
+2024-12-01 14:32:14,886 - TeleBot - ERROR - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2024-12-01 14:32:18,827 - TeleBot - ERROR - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2024-12-01 14:32:23,539 - TeleBot - ERROR - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2024-12-01 14:32:29,699 - TeleBot - ERROR - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2024-12-01 14:32:35,928 - TeleBot - ERROR - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2024-12-01 14:32:48,082 - TeleBot - ERROR - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2024-12-01 14:33:03,161 - __main__ - INFO - Запуск бота
+2024-12-01 14:33:11,097 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 14:33:11,417 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 14:33:13,327 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 14:33:13,478 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 14:33:15,286 - __main__ - INFO - Начало обработки сообщения
+2024-12-01 14:33:15,407 - __main__ - INFO - Сообщение обработано успешно
+2024-12-01 16:10:11,581 - __main__ - INFO - Запуск бота
+2024-12-01 16:10:15,667 - TeleBot - ERROR - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2024-12-01 16:10:19,587 - TeleBot - ERROR - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+2024-12-01 16:10:24,252 - TeleBot - ERROR - Unhandled exception (full traceback for debug level): A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running

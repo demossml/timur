@@ -7,11 +7,11 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: rootpassword
-      MONGODB_DATABASE: tc
+      MONGODB_DATABASE: tk
       MONGODB_HOSTNAME: mongodb
-      TELEGRAM_TOKEN: "7632789074:AAFseWWJtsMYQocqHFQMj-0rljn64eXyDpE"
+#      TELEGRAM_TOKEN: "7632789074:AAFseWWJtsMYQocqHFQMj-0rljn64eXyDpE"
     ports:
-      - 127.0.0.1:24000:27020
+      - 127.0.0.1:24700:27020
     volumes:
       - mongodb_data:/data/db
 
@@ -23,7 +23,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: rootpassword
-      MONGODB_DATABASE: timur
+      MONGODB_DATABASE: tk
       MONGODB_HOSTNAME: mongodb
       TELEGRAM_TOKEN: "7632789074:AAFseWWJtsMYQocqHFQMj-0rljn64eXyDpE"
     volumes:
